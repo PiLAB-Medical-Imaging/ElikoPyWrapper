@@ -52,7 +52,7 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
 
     atlasProjectedHeader = copy.deepcopy(atlas.header)
     atlasProjectedHeader["dim"][1:4] = atlas_data_DWIspace.shape[0:3]
-    atlasProjectedHeader["pixdim"] = atlas_data_DWIspace.shape[0:3]
+    atlasProjectedHeader["pixdim"] = subject_map.header["pixdim"]
 
     out_DWI = nib.Nifti1Image(atlas_data_DWIspace, subject_map.affine, atlasProjectedHeader)
     out_DWI.to_filename(reg_path + p + "_Atlas_" + atlasName + "_InSubjectDWISpaceFrom_" + DWI_type + ".nii.gz")
