@@ -3,7 +3,7 @@ import os
 import pickle
 import nibabel as nib
 import copy
-
+import numpy as np
 from dipy.segment.mask import applymask
 from dipy.io.image import load_nifti
 from dipy.align.imaffine import (transform_centers_of_mass,
@@ -54,6 +54,7 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
     atlasProjectedHeader["dim"][1:4] = atlas_data_DWIspace.shape[0:3]
     atlasProjectedHeader["pixdim"] = subject_map.header["pixdim"]
 
+    atlas_data_DWIspace = np.around(atlas_data_DWIspace)
     out_DWI = nib.Nifti1Image(atlas_data_DWIspace, subject_map.affine, atlasProjectedHeader)
     out_DWI.to_filename(reg_path + p + "_Atlas_" + atlasName + "_InSubjectDWISpaceFrom_" + DWI_type + ".nii.gz")
 

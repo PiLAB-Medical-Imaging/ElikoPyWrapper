@@ -24,10 +24,14 @@ def connectivityMatrix(folder_path, p, label_fname):
     labels = np.round(labels_nii.get_fdata()).astype(int)
 
     tracking_path = folder_path + '/subjects/' + p + "/dMRI/tractography/"
-    tractogram_path = tracking_path + p + '_tractogram.tck'
+    tractogram_path = tracking_path + p + '_tractogram.trk'
     if os.path.exists(tractogram_path):
         tractogram = load_tractogram(tractogram_path, "same")
+    else:
+        raise Exception("No tractogram found in " + tracking_path)
+        return
 
+    # Compute the connectivity matrix
     MV, grouping = dipy.tracking.utils.connectivity_matrix(tractogram.streamlines, img.affine, labels,
                                              return_mapping=True,
                                              mapping_as_streamlines=True)
