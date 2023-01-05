@@ -48,6 +48,8 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
     atlas = nib.load(atlasPath)
     atlas_data = atlas.get_fdata()
     atlas_data_T1space = mapping_T1w_to_T1wCommonSpace.transform_inverse(atlas_data)
+    atlas_data_T1space = np.around(atlas_data_T1space)
+    atlas_data_T1space = atlas_data_T1space.astype(np.uint8)
     atlas_data_DWIspace = mapping_DWI_to_T1.transform_inverse(atlas_data_T1space)
 
     atlasProjectedHeader = copy.deepcopy(atlas.header)
@@ -55,6 +57,7 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
     atlasProjectedHeader["pixdim"] = subject_map.header["pixdim"]
 
     atlas_data_DWIspace = np.around(atlas_data_DWIspace)
+    atlas_data_DWIspace = atlas_data_DWIspace.astype(np.uint8)
     out_DWI = nib.Nifti1Image(atlas_data_DWIspace, subject_map.affine, atlasProjectedHeader)
     out_DWI.to_filename(reg_path + p + "_Atlas_" + atlasName + "_InSubjectDWISpaceFrom_" + DWI_type + ".nii.gz")
 
