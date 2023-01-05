@@ -18,8 +18,9 @@ def connectivityMatrix(folder_path, p, label_fname):
         raise Exception("No ODF file found in " + folder_path + '/subjects/' + p + "/dMRI/ODF/")
         return
 
-
-    labels_nii = nib.load(label_fname)
+    reg_path = folder_path + '/subjects/' + p + '/reg/'
+    label_fpath = os.path.join(reg_path, p + "_Atlas_" + label_fname + ".nii.gz")
+    labels_nii = nib.load(label_fpath)
     labels = np.round(labels_nii.get_fdata()).astype(int)
 
     tracking_path = folder_path + '/subjects/' + p + "/dMRI/tractography/"
@@ -36,6 +37,6 @@ def connectivityMatrix(folder_path, p, label_fname):
 
 
     import matplotlib.pyplot as plt
-
+    np.save(tracking_path + p + "_connectivity_matrix.npy", MV)
     plt.imshow(np.log1p(MV), interpolation='nearest')
     plt.savefig(tracking_path + "connectivity.png")
