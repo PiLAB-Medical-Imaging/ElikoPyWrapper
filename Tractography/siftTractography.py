@@ -54,3 +54,8 @@ def siftComputation(folder_path, p, SIFT2=False, msmtCSD:bool=True, core_count=1
     process.communicate()
 
     tracking_log.close()
+
+    from dipy.io.streamline import load_tractogram, save_trk
+    dwi_path = folder_path + '/subjects/' + patient_path + '/dMRI/preproc/' + patient_path + '_dmri_preproc.nii.gz'
+    tract = load_tractogram(out_tracks, dwi_path)
+    save_trk(tract, out_tracks[:-3]+'trk')
