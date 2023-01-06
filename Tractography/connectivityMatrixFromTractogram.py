@@ -55,6 +55,14 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN"):
     import matplotlib.pyplot as plt
     plt.imshow(np.log1p(MV), interpolation='nearest')
 
-    if input == "SIFT" or input == "SIFT2":
+    if input == "SIFT":
+        np.save(tracking_path + p + "_connectivity_matrix_" + input + "_sift.npy", MV)
+        plt.savefig(tracking_path + "connectivity" + input + "_sift.png")
+    elif input == "TCKGEN":
         np.save(tracking_path + p + "_connectivity_matrix_" + input + ".npy", MV)
         plt.savefig(tracking_path + "connectivity" + input + ".png")
+    elif input == "SIFT2":
+        np.save(tracking_path + p + "_connectivity_matrix_" + input + "_sift2.npy", MV)
+        plt.savefig(tracking_path + "connectivity" + input + "_sift2.png")
+    else:
+        raise Exception("Invalid input type")
