@@ -55,6 +55,5 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN"):
     import matplotlib.pyplot as plt
     plt.imshow(np.log1p(MV), interpolation='nearest')
 
-    if input == "SIFT" or input == "SIFT2":
-        np.save(tracking_path + p + "_connectivity_matrix_" + input + ".npy", MV)
-        plt.savefig(tracking_path + "connectivity" + input + ".png")
+    np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_connectivityMatrix.npy", MV)
+    plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_connectivityMatrix.png")
