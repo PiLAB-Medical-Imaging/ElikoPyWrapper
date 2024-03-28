@@ -42,6 +42,8 @@ def printError(ex_type, ex_value, ex_traceback):
 def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}, excluded={}, longitudinal=False):
     study = elikopy.core.Elikopy(folder_path, slurm=False, slurm_email=slurm_email, cuda=False)
     
+    longitudinal_txt = "" if not longitudinal else "_longitudinal"
+    
     print(f"Starting processingPipeline for subject {p}")
     
     print(excluded)
@@ -71,26 +73,26 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         forced["noddi"] = False
     if forced.get('fingerprinting') is None:
         forced["fingerprinting"] = False
-    if forced.get('regallDWIToT1wToT1wCommonSpace') is None:
-        forced["regallDWIToT1wToT1wCommonSpace"] = False
+    if forced.get(f'regallDWIToT1wToT1wCommonSpace{longitudinal_txt}') is None:
+        forced[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"] = False
     if forced.get('tracking') is None:
         forced["tracking"] = False
-    if forced.get('inverseTransformAtlas') is None:
-        forced["inverseTransformAtlas"] = False
+    if forced.get(f'inverseTransformAtlas{longitudinal_txt}') is None:
+        forced[f"inverseTransformAtlas{longitudinal_txt}"] = False
     if forced.get('siftComputation') is None:
         forced["siftComputation"] = False
     if forced.get('connectivityMatrixSift') is None:
         forced["connectivityMatrixSift"] = False
     if forced.get('connectivityMatrixTCKGEN') is None:
         forced["connectivityMatrixTCKGEN"] = False
-    if forced.get('regallDWIToT1wToT1wCommonSpaceNoddi') is None:
-        forced["regallDWIToT1wToT1wCommonSpaceNoddi"] = False
-    if forced.get('regallDWIToT1wToT1wCommonSpaceFingerprinting') is None:
-        forced["regallDWIToT1wToT1wCommonSpaceFingerprinting"] = False
-    if forced.get('regallDWIToT1wToT1wCommonSpaceCHARMED_r3') is None:
-        forced["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] = False
-    if forced.get('regallDWIToT1wToT1wCommonSpaceDTI') is None:
-        forced["regallDWIToT1wToT1wCommonSpaceDTI"] = False
+    if forced.get(f'regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}') is None:
+        forced[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"] = False
+    if forced.get(f'regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}') is None:
+        forced[f"regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}"] = False
+    if forced.get(f'regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}') is None:
+        forced[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"] = False
+    if forced.get(f'regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}') is None:
+        forced[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"] = False
         
     
     if excluded.get('preproc') is None:
@@ -109,26 +111,26 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         excluded["noddi"] = False
     if excluded.get('fingerprinting') is None:
         excluded["fingerprinting"] = False
-    if excluded.get('regallDWIToT1wToT1wCommonSpace') is None:
-        excluded["regallDWIToT1wToT1wCommonSpace"] = False
+    if excluded.get(f'regallDWIToT1wToT1wCommonSpace{longitudinal_txt}') is None:
+        excluded[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"] = False
     if excluded.get('tracking') is None:
         excluded["tracking"] = False
-    if excluded.get('inverseTransformAtlas') is None:
-        excluded["inverseTransformAtlas"] = False
+    if excluded.get(f'inverseTransformAtlas{longitudinal_txt}') is None:
+        excluded[f"inverseTransformAtlas{longitudinal_txt}"] = False
     if excluded.get('siftComputation') is None:
         excluded["siftComputation"] = False
     if excluded.get('connectivityMatrixSift') is None:
         excluded["connectivityMatrixSift"] = False
     if excluded.get('connectivityMatrixTCKGEN') is None:
         excluded["connectivityMatrixTCKGEN"] = False
-    if excluded.get('regallDWIToT1wToT1wCommonSpaceNoddi') is None:
-        excluded["regallDWIToT1wToT1wCommonSpaceNoddi"] = False
-    if excluded.get('regallDWIToT1wToT1wCommonSpaceFingerprinting') is None:
-        excluded["regallDWIToT1wToT1wCommonSpaceFingerprinting"] = False
-    if excluded.get('regallDWIToT1wToT1wCommonSpaceCHARMED_r3') is None:
-        excluded["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] = False
-    if excluded.get('regallDWIToT1wToT1wCommonSpaceDTI') is None:
-        excluded["regallDWIToT1wToT1wCommonSpaceDTI"] = False
+    if excluded.get(f'regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}') is None:
+        excluded[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"] = False
+    if excluded.get(f'regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}') is None:
+        excluded[f"regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}"] = False
+    if excluded.get(f'regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}') is None:
+        excluded[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"] = False
+    if excluded.get(f'regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}') is None:
+        excluded[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"] = False
     
     
     
@@ -258,13 +260,13 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     json.dump(patient_status, f, indent = 6)
                     
         if patient_status.get('wm_mask_AP') is not None and patient_status["wm_mask_AP"] == True:
-            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpace') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True) or forced["regallDWIToT1wToT1wCommonSpace"]) and not excluded["regallDWIToT1wToT1wCommonSpace"]:
+            if (not (patient_status.get(f'regallDWIToT1wToT1wCommonSpace{longitudinal_txt}') is not None and patient_status[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"] == True) or forced[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"]) and not excluded[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"]:
                 try:
-                    print("regallDWIToT1wToT1wCommonSpace",flush=True)
+                    print(f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}",flush=True)
                     regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", longitudinal=longitudinal, maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={})
-                    patient_status["regallDWIToT1wToT1wCommonSpace"] = True
+                    patient_status[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"] = True
                 except Exception as e:
-                    patient_status["regallDWIToT1wToT1wCommonSpace"] = False
+                    patient_status[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"] = False
                     error = True
                     ex_type, ex_value, ex_traceback = sys.exc_info()
                     printError(ex_type, ex_value, ex_traceback)
@@ -273,14 +275,14 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     json.dump(patient_status, f, indent = 6)
                     
                     
-        if patient_status.get('regallDWIToT1wToT1wCommonSpace') is not None and patient_status.get('dti') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True and patient_status["dti"] == True:
-            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceDTI') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] == True) or forced["regallDWIToT1wToT1wCommonSpaceDTI"]) and not excluded["regallDWIToT1wToT1wCommonSpaceDTI"]:
+        if patient_status.get(f'regallDWIToT1wToT1wCommonSpace{longitudinal_txt}') is not None and patient_status.get('dti') is not None and patient_status[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"] == True and patient_status["dti"] == True:
+            if (not (patient_status.get(f'regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}') is not None and patient_status[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"] == True) or forced[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"]) and not excluded[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"]:
                 try:
-                    print("regallDWIToT1wToT1wCommonSpaceDTI",flush=True)
+                    print(f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}",flush=True)
                     regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", longitudinal=longitudinal, maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'_FA': 'dti', 'RD': 'dti', 'AD': 'dti', 'MD': 'dti'})
-                    patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] = True
+                    patient_status[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"] = True
                 except Exception as e:
-                    patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] = False
+                    patient_status[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"] = False
                     error = True
                     ex_type, ex_value, ex_traceback = sys.exc_info()
                     printError(ex_type, ex_value, ex_traceback)
@@ -305,16 +307,16 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             with open(json_status_file,"w") as f:
                 json.dump(patient_status, f, indent = 6)
         
-        if patient_status.get('regallDWIToT1wToT1wCommonSpace') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True and patient_status.get('tracking') is not None and patient_status["tracking"] == True:
+        if patient_status.get(f'regallDWIToT1wToT1wCommonSpace{longitudinal_txt}') is not None and patient_status[f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"] == True and patient_status.get('tracking') is not None and patient_status["tracking"] == True:
             
-            if (not (patient_status.get('inverseTransformAtlas') is not None and patient_status["inverseTransformAtlas"] == True) or forced["inverseTransformAtlas"]) and not excluded["inverseTransformAtlas"]:
+            if (not (patient_status.get(f'inverseTransformAtlas{longitudinal_txt}') is not None and patient_status[f"inverseTransformAtlas{longitudinal_txt}"] == True) or forced[f"inverseTransformAtlas{longitudinal_txt}"]) and not excluded[f"inverseTransformAtlas{longitudinal_txt}"]:
                 try:
-                    print("inverseTransformAtlas",flush=True)
+                    print(f"inverseTransformAtlas{longitudinal_txt}",flush=True)
                     atlas_path = "/CECI/proj/pilab/static_files_ELIKOPY/T1_MNI/" + "BN_Atlas_246_1mm_MNI.nii.gz"
                     inverseTransformAtlas(folder_path, p, atlasPath=atlas_path, atlasName="BN_246_1mm", DWI_type="AP", longitudinal=longitudinal)
-                    patient_status["inverseTransformAtlas"] = True
+                    patient_status[f"inverseTransformAtlas{longitudinal_txt}"] = True
                 except Exception as e:
-                    patient_status["inverseTransformAtlas"] = False
+                    patient_status[f"inverseTransformAtlas{longitudinal_txt}"] = False
                     error = True
                     ex_type, ex_value, ex_traceback = sys.exc_info()
                     printError(ex_type, ex_value, ex_traceback)
@@ -380,13 +382,13 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     
                     
         if patient_status.get('wm_mask_AP') is not None and patient_status.get('noddi') is not None and patient_status["wm_mask_AP"] == True and patient_status["noddi"] == True:
-            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceNoddi') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceNoddi"] == True) or forced["regallDWIToT1wToT1wCommonSpaceNoddi"]) and not excluded["regallDWIToT1wToT1wCommonSpaceNoddi"]:
+            if (not (patient_status.get(f'regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}') is not None and patient_status[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"] == True) or forced[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"]) and not excluded[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"]:
                 try:
-                    print("regallDWIToT1wToT1wCommonSpaceNoddi",flush=True)
+                    print(f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}",flush=True)
                     regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, longitudinal=longitudinal, metrics_dic={'noddi_fiso': 'noddi', 'noddi_odi': 'noddi', 'noddi_icvf': 'noddi', 'noddi_fintra': 'noddi', 'noddi_fextra': 'noddi', 'noddi_fbundle': 'noddi'})
-                    patient_status["regallDWIToT1wToT1wCommonSpaceNoddi"] = True
+                    patient_status[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"] = True
                 except Exception as e:
-                    patient_status["regallDWIToT1wToT1wCommonSpaceNoddi"] = False
+                    patient_status[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"] = False
                     error = True
                     ex_type, ex_value, ex_traceback = sys.exc_info()
                     printError(ex_type, ex_value, ex_traceback)
@@ -395,13 +397,13 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     json.dump(patient_status, f, indent = 6)
             
         if patient_status.get('wm_mask_AP') is not None and patient_status.get('fingerprinting') is not None and patient_status["wm_mask_AP"] == True and patient_status["fingerprinting"] == True:
-            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceFingerprinting') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceFingerprinting"] == True) or forced["regallDWIToT1wToT1wCommonSpaceFingerprinting"]) and not excluded["regallDWIToT1wToT1wCommonSpaceFingerprinting"]:
+            if (not (patient_status.get(f'regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}') is not None and patient_status[f"regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}"] == True) or forced[f"regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}"]) and not excluded[f"regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}"]:
                 try:
-                    print("regallDWIToT1wToT1wCommonSpaceFingerprinting",flush=True)
+                    print(f"regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}",flush=True)
                     regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask,longitudinal=longitudinal, metrics_dic={'mf_fvf_f0': 'mf', 'mf_fvf_f1': 'mf', 'mf_fvf_tot': 'mf', 'mf_frac_f0': 'mf', 'mf_frac_f1': 'mf', 'mf_frac_csf': 'mf', 'mf_DIFF_ex_f0': 'mf', 'mf_DIFF_ex_f1': 'mf', 'mf_DIFF_ex_tot': 'mf'})
-                    patient_status["regallDWIToT1wToT1wCommonSpaceFingerprinting"] = True
+                    patient_status[f"regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}"] = True
                 except Exception as e:
-                    patient_status["regallDWIToT1wToT1wCommonSpaceFingerprinting"] = False
+                    patient_status[f"regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}"] = False
                     error = True
                     ex_type, ex_value, ex_traceback = sys.exc_info()
                     printError(ex_type, ex_value, ex_traceback)
@@ -410,14 +412,14 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     json.dump(patient_status, f, indent = 6)
                     
         if patient_status.get('wm_mask_AP') is not None and patient_status.get('CHARMED_r3') is not None and patient_status["wm_mask_AP"] == True and patient_status["CHARMED_r3"] == True:
-            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceCHARMED_r3') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] == True) or forced["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"]) and not excluded["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"]:
+            if (not (patient_status.get(f'regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}') is not None and patient_status[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"] == True) or forced[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"]) and not excluded[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"]:
                 try:
-                    print("regallDWIToT1wToT1wCommonSpaceCHARMED_r3",flush=True)
+                    print(f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}",flush=True)
                     
                     regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask,longitudinal=longitudinal,metrics_dic={'CHARMED_r3_FR': 'CHARMED_r3', 'CHARMED_r3_S0.s0': 'CHARMED_r3', 'CHARMED_r3_AIC': 'CHARMED_r3', 'CHARMED_r3_BIC': 'CHARMED_r3', 'CHARMED_r3_Tensor.theta': 'CHARMED_r3','CHARMED_r3_Tensor.d': 'CHARMED_r3', 'CHARMED_r3_Tensor.psi': 'CHARMED_r3', 'CHARMED_r3_Tensor.phi': 'CHARMED_r3', 'CHARMED_r3_Tensor.dperp1': 'CHARMED_r3', 'CHARMED_r3_Tensor.dperp0': 'CHARMED_r3','CHARMED_r3_Tensor.FA': 'CHARMED_r3', 'CHARMED_r3_Tensor.MD': 'CHARMED_r3', 'CHARMED_r3_Tensor.AD': 'CHARMED_r3', 'CHARMED_r3_Tensor.RD': 'CHARMED_r3','CHARMED_r3_w_': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.theta': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.theta': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.theta': 'CHARMED_r3', 'CHARMED_r3_disp': 'CHARMED_r3'})
-                    patient_status["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] = True
+                    patient_status[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"] = True
                 except Exception as e:
-                    patient_status["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] = False
+                    patient_status[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"] = False
                     error = True
                     ex_type, ex_value, ex_traceback = sys.exc_info()
                     printError(ex_type, ex_value, ex_traceback)
