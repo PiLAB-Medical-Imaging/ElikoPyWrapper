@@ -25,15 +25,15 @@ def cleanT1Derivatives(folder_path, p):
             if f != p + "_T1.nii.gz" and f != p + "_T1.json":
                 os.remove(os.path.join(T1_subject_path, f))
 
-    if os.path.exists(mask_subject_path, p + "_ap.nii.gz"):
+    if os.path.exists(os.path.join(mask_subject_path, p + "_ap.nii.gz")):
         os.remove(os.path.join(mask_subject_path, p + "_ap.nii.gz"))
-    if os.path.exists(mask_subject_path, p + "_segmentation_AP.nii.gz"):
+    if os.path.exists(os.path.join(mask_subject_path, p + "_segmentation_AP.nii.gz")):
         os.remove(os.path.join(mask_subject_path, p + "_segmentation_AP.nii.gz"))
-    if os.path.exists(mask_subject_path, p + "_segmentatin_FSL_T1.nii.gz"):
+    if os.path.exists(os.path.join(mask_subject_path, p + "_segmentatin_FSL_T1.nii.gz")):
         os.remove(os.path.join(mask_subject_path, p + "_segmentatin_FSL_T1.nii.gz"))
-    if os.path.exists(mask_subject_path, p + "_wm_mask_AP.nii.gz"):
+    if os.path.exists(os.path.join(mask_subject_path, p + "_wm_mask_AP.nii.gz")):
         os.remove(os.path.join(mask_subject_path, p + "_wm_mask_AP.nii.gz"))
-    if os.path.exists(mask_subject_path, p + "_wm_mask_FSL_T1.nii.gz"):
+    if os.path.exists(os.path.join(mask_subject_path, p + "_wm_mask_FSL_T1.nii.gz")):
         os.remove(os.path.join(mask_subject_path, p + "_wm_mask_FSL_T1.nii.gz"))
 
     to_update = ["regallDWIToT1wToT1wCommonSpaceNoddi", "regallDWIToT1wToT1wCommonSpaceFingerprinting",
