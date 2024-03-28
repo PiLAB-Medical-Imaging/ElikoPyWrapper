@@ -29,8 +29,8 @@ def cleanT1Derivatives(folder_path, p):
         os.remove(os.path.join(mask_subject_path, p + "_ap.nii.gz"))
     if os.path.exists(os.path.join(mask_subject_path, p + "_segmentation_AP.nii.gz")):
         os.remove(os.path.join(mask_subject_path, p + "_segmentation_AP.nii.gz"))
-    if os.path.exists(os.path.join(mask_subject_path, p + "_segmentatin_FSL_T1.nii.gz")):
-        os.remove(os.path.join(mask_subject_path, p + "_segmentatin_FSL_T1.nii.gz"))
+    if os.path.exists(os.path.join(mask_subject_path, p + "_segmentation_FSL_T1.nii.gz")):
+        os.remove(os.path.join(mask_subject_path, p + "_segmentation_FSL_T1.nii.gz"))
     if os.path.exists(os.path.join(mask_subject_path, p + "_wm_mask_AP.nii.gz")):
         os.remove(os.path.join(mask_subject_path, p + "_wm_mask_AP.nii.gz"))
     if os.path.exists(os.path.join(mask_subject_path, p + "_wm_mask_FSL_T1.nii.gz")):
