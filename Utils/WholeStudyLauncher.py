@@ -39,7 +39,7 @@ def printError(ex_type, ex_value, ex_traceback):
     print("Exception message : %s" %ex_value)
     print("Stack trace : %s" %stack_trace, flush=True)
 
-def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}, excluded={}):
+def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}, excluded={}, longitudinal=False):
     study = elikopy.core.Elikopy(folder_path, slurm=False, slurm_email=slurm_email, cuda=False)
     
     print(f"Starting processingPipeline for subject {p}")
@@ -261,7 +261,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             if (not (patient_status.get('regallDWIToT1wToT1wCommonSpace') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True) or forced["regallDWIToT1wToT1wCommonSpace"]) and not excluded["regallDWIToT1wToT1wCommonSpace"]:
                 try:
                     print("regallDWIToT1wToT1wCommonSpace",flush=True)
-                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={})
+                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", longitudinal=longitudinal, maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={})
                     patient_status["regallDWIToT1wToT1wCommonSpace"] = True
                 except Exception as e:
                     patient_status["regallDWIToT1wToT1wCommonSpace"] = False
@@ -277,7 +277,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceDTI') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] == True) or forced["regallDWIToT1wToT1wCommonSpaceDTI"]) and not excluded["regallDWIToT1wToT1wCommonSpaceDTI"]:
                 try:
                     print("regallDWIToT1wToT1wCommonSpaceDTI",flush=True)
-                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'_FA': 'dti', 'RD': 'dti', 'AD': 'dti', 'MD': 'dti'})
+                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", longitudinal=longitudinal, maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'_FA': 'dti', 'RD': 'dti', 'AD': 'dti', 'MD': 'dti'})
                     patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] = True
                 except Exception as e:
                     patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] = False
@@ -311,7 +311,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                 try:
                     print("inverseTransformAtlas",flush=True)
                     atlas_path = "/CECI/proj/pilab/static_files_ELIKOPY/T1_MNI/" + "BN_Atlas_246_1mm_MNI.nii.gz"
-                    inverseTransformAtlas(folder_path, p, atlasPath=atlas_path, atlasName="BN_246_1mm", DWI_type="AP")
+                    inverseTransformAtlas(folder_path, p, atlasPath=atlas_path, atlasName="BN_246_1mm", DWI_type="AP", longitudinal=longitudinal)
                     patient_status["inverseTransformAtlas"] = True
                 except Exception as e:
                     patient_status["inverseTransformAtlas"] = False
@@ -383,7 +383,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceNoddi') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceNoddi"] == True) or forced["regallDWIToT1wToT1wCommonSpaceNoddi"]) and not excluded["regallDWIToT1wToT1wCommonSpaceNoddi"]:
                 try:
                     print("regallDWIToT1wToT1wCommonSpaceNoddi",flush=True)
-                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'noddi_fiso': 'noddi', 'noddi_odi': 'noddi', 'noddi_icvf': 'noddi', 'noddi_fintra': 'noddi', 'noddi_fextra': 'noddi', 'noddi_fbundle': 'noddi'})
+                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, longitudinal=longitudinal, metrics_dic={'noddi_fiso': 'noddi', 'noddi_odi': 'noddi', 'noddi_icvf': 'noddi', 'noddi_fintra': 'noddi', 'noddi_fextra': 'noddi', 'noddi_fbundle': 'noddi'})
                     patient_status["regallDWIToT1wToT1wCommonSpaceNoddi"] = True
                 except Exception as e:
                     patient_status["regallDWIToT1wToT1wCommonSpaceNoddi"] = False
@@ -398,7 +398,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceFingerprinting') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceFingerprinting"] == True) or forced["regallDWIToT1wToT1wCommonSpaceFingerprinting"]) and not excluded["regallDWIToT1wToT1wCommonSpaceFingerprinting"]:
                 try:
                     print("regallDWIToT1wToT1wCommonSpaceFingerprinting",flush=True)
-                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'mf_fvf_f0': 'mf', 'mf_fvf_f1': 'mf', 'mf_fvf_tot': 'mf', 'mf_frac_f0': 'mf', 'mf_frac_f1': 'mf', 'mf_frac_csf': 'mf', 'mf_DIFF_ex_f0': 'mf', 'mf_DIFF_ex_f1': 'mf', 'mf_DIFF_ex_tot': 'mf'})
+                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask,longitudinal=longitudinal, metrics_dic={'mf_fvf_f0': 'mf', 'mf_fvf_f1': 'mf', 'mf_fvf_tot': 'mf', 'mf_frac_f0': 'mf', 'mf_frac_f1': 'mf', 'mf_frac_csf': 'mf', 'mf_DIFF_ex_f0': 'mf', 'mf_DIFF_ex_f1': 'mf', 'mf_DIFF_ex_tot': 'mf'})
                     patient_status["regallDWIToT1wToT1wCommonSpaceFingerprinting"] = True
                 except Exception as e:
                     patient_status["regallDWIToT1wToT1wCommonSpaceFingerprinting"] = False
@@ -414,7 +414,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                 try:
                     print("regallDWIToT1wToT1wCommonSpaceCHARMED_r3",flush=True)
                     
-                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask,metrics_dic={'CHARMED_r3_FR': 'CHARMED_r3', 'CHARMED_r3_S0.s0': 'CHARMED_r3', 'CHARMED_r3_AIC': 'CHARMED_r3', 'CHARMED_r3_BIC': 'CHARMED_r3', 'CHARMED_r3_Tensor.theta': 'CHARMED_r3','CHARMED_r3_Tensor.d': 'CHARMED_r3', 'CHARMED_r3_Tensor.psi': 'CHARMED_r3', 'CHARMED_r3_Tensor.phi': 'CHARMED_r3', 'CHARMED_r3_Tensor.dperp1': 'CHARMED_r3', 'CHARMED_r3_Tensor.dperp0': 'CHARMED_r3','CHARMED_r3_Tensor.FA': 'CHARMED_r3', 'CHARMED_r3_Tensor.MD': 'CHARMED_r3', 'CHARMED_r3_Tensor.AD': 'CHARMED_r3', 'CHARMED_r3_Tensor.RD': 'CHARMED_r3','CHARMED_r3_w_': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.theta': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.theta': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.theta': 'CHARMED_r3', 'CHARMED_r3_disp': 'CHARMED_r3'})
+                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask,longitudinal=longitudinal,metrics_dic={'CHARMED_r3_FR': 'CHARMED_r3', 'CHARMED_r3_S0.s0': 'CHARMED_r3', 'CHARMED_r3_AIC': 'CHARMED_r3', 'CHARMED_r3_BIC': 'CHARMED_r3', 'CHARMED_r3_Tensor.theta': 'CHARMED_r3','CHARMED_r3_Tensor.d': 'CHARMED_r3', 'CHARMED_r3_Tensor.psi': 'CHARMED_r3', 'CHARMED_r3_Tensor.phi': 'CHARMED_r3', 'CHARMED_r3_Tensor.dperp1': 'CHARMED_r3', 'CHARMED_r3_Tensor.dperp0': 'CHARMED_r3','CHARMED_r3_Tensor.FA': 'CHARMED_r3', 'CHARMED_r3_Tensor.MD': 'CHARMED_r3', 'CHARMED_r3_Tensor.AD': 'CHARMED_r3', 'CHARMED_r3_Tensor.RD': 'CHARMED_r3','CHARMED_r3_w_': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted0.theta': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted1.theta': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.d': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.phi': 'CHARMED_r3', 'CHARMED_r3_CHARMEDRestricted2.theta': 'CHARMED_r3', 'CHARMED_r3_disp': 'CHARMED_r3'})
                     patient_status["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] = True
                 except Exception as e:
                     patient_status["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] = False

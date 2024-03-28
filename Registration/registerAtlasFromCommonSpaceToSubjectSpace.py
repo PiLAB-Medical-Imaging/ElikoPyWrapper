@@ -15,7 +15,7 @@ from dipy.align.transforms import (TranslationTransform3D,
                                    AffineTransform3D)
 from dipy.align.imwarp import SymmetricDiffeomorphicRegistration
 
-def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
+def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP", longitudinal=False):
     preproc_folder = folder_path + '/subjects/' + p + '/dMRI/preproc/'
     reg_path = folder_path + '/subjects/' + p + '/reg/'
     if os.path.exists(reg_path + 'mapping_T1w_to_T1wCommonSpace.p'):
@@ -24,6 +24,14 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
     else:
         raise Exception("No mapping_T1w_to_T1wCommonSpace.p file found in " + reg_path)
         return
+
+    if longitudinal:
+        if os.path.exists(reg_path + 'mapping_T1w_to_T1wRef.p'):
+            with open(reg_path + 'mapping_T1w_to_T1wRef.p', 'rb') as handle:
+                mapping_T1w_to_T1wRef = pickle.load(handle)
+        else:
+            raise Exception("No mapping_T1w_to_T1wRef.p file found in " + reg_path)
+            return
 
     DWI_subject = preproc_folder + p + "_dmri_preproc.nii.gz"
     AP_subject = folder_path + '/subjects/' + p + '/masks/' + p + '_ap.nii.gz'
@@ -52,6 +60,8 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
     atlas_data_T1space = mapping_T1w_to_T1wCommonSpace.transform_inverse(atlas_data, interpolation='nearest')
     #atlas_data_T1space = np.around(atlas_data_T1space)
     #atlas_data_T1space = atlas_data_T1space.astype(np.uint8)
+    if mapping_T1w_to_T1wRef is not None:
+        atlas_data_T1space = mapping_T1w_to_T1wRef.transform_inverse(atlas_data_T1space, interpolation='nearest')
     atlas_data_DWIspace = mapping_DWI_to_T1.transform_inverse(atlas_data_T1space, interpolation='nearest')
 
     atlasProjectedHeader = copy.deepcopy(atlas.header)
