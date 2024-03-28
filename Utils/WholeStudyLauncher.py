@@ -9,7 +9,7 @@ import sys
 from elikopy.registration import regallDWIToT1wToT1wCommonSpace, applyTransformToAllMapsInFolder
 import traceback
 
-wrapper_path = r"/auto/globalscratch/users/l/d/ldricot/ElikoPyWrapper/"
+wrapper_path = r"/CECI/proj/pilab/static_files_ELIKOPY/ElikoPyWrapper/"
 atlasreg_path= wrapper_path + r"Registration/"
 sys.path.append(atlasreg_path)
 
@@ -18,12 +18,11 @@ sys.path.append(connM_path)
 
 from registerAtlasFromCommonSpaceToSubjectSpace import inverseTransformAtlas
 from connectivityMatrixFromTractogram import connectivityMatrix
-from siftTractography import siftComputation
 
 
 T1_MNI="${FSLDIR}/data/standard/MNI152_T1_1mm_brain.nii.gz"
 T1_MNI_mask="${FSLDIR}/data/standard/MNI152_T1_1mm_brain_mask.nii.gz"
-T1_MNI=r'/CECI/proj/pilab/PermeableAccess/meditant_h67jkhFfG9uyD/MNI_ICBM152_T1_NLIN_ASYM_09c_BRAIN.nii.gz'
+T1_MNI=r'/CECI/proj/pilab/static_files_ELIKOPY/T1_MNI/MNI_ICBM152_T1_NLIN_ASYM_09c_BRAIN.nii.gz'
 T1_MNI_mask=None
 
 def printError(ex_type, ex_value, ex_traceback):
@@ -40,10 +39,14 @@ def printError(ex_type, ex_value, ex_traceback):
     print("Exception message : %s" %ex_value)
     print("Stack trace : %s" %stack_trace, flush=True)
 
-def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}):
+def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}, excluded={}):
     study = elikopy.core.Elikopy(folder_path, slurm=False, slurm_email=slurm_email, cuda=False)
     
-    dic_path = "/home/users/q/d/qdessain/Script_python/fixed_rad_dist.mat"
+    print(f"Starting processingPipeline for subject {p}")
+    
+    print(excluded)
+    
+    dic_path = "/CECI/proj/pilab/static_files_ELIKOPY/mf_dic/dictionary-fixedraddist_scheme-StLucGE.mat"
     error = False
     json_status_file = os.path.join(folder_path,"subjects",p,f"{p}_status.json")
     if os.path.exists(json_status_file):
@@ -86,13 +89,55 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         forced["regallDWIToT1wToT1wCommonSpaceFingerprinting"] = False
     if forced.get('regallDWIToT1wToT1wCommonSpaceCHARMED_r3') is None:
         forced["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] = False
+    if forced.get('regallDWIToT1wToT1wCommonSpaceDTI') is None:
+        forced["regallDWIToT1wToT1wCommonSpaceDTI"] = False
         
-    if not (patient_status.get('preproc') is not None and patient_status["preproc"] == True) or forced["preproc"]:
+    
+    if excluded.get('preproc') is None:
+        excluded["preproc"] = False
+    if excluded.get('wm_mask_FSL_T1') is None:
+        excluded["wm_mask_FSL_T1"] = False
+    if excluded.get('wm_mask_AP') is None:
+        excluded["wm_mask_AP"] = False
+    if excluded.get('dti') is None:
+        excluded["dti"] = False
+    if excluded.get('odf_msmtcsd') is None:
+        excluded["odf_msmtcsd"] = False
+    if excluded.get('odf_csd') is None:
+        excluded["odf_csd"] = False
+    if excluded.get('noddi') is None:
+        excluded["noddi"] = False
+    if excluded.get('fingerprinting') is None:
+        excluded["fingerprinting"] = False
+    if excluded.get('regallDWIToT1wToT1wCommonSpace') is None:
+        excluded["regallDWIToT1wToT1wCommonSpace"] = False
+    if excluded.get('tracking') is None:
+        excluded["tracking"] = False
+    if excluded.get('inverseTransformAtlas') is None:
+        excluded["inverseTransformAtlas"] = False
+    if excluded.get('siftComputation') is None:
+        excluded["siftComputation"] = False
+    if excluded.get('connectivityMatrixSift') is None:
+        excluded["connectivityMatrixSift"] = False
+    if excluded.get('connectivityMatrixTCKGEN') is None:
+        excluded["connectivityMatrixTCKGEN"] = False
+    if excluded.get('regallDWIToT1wToT1wCommonSpaceNoddi') is None:
+        excluded["regallDWIToT1wToT1wCommonSpaceNoddi"] = False
+    if excluded.get('regallDWIToT1wToT1wCommonSpaceFingerprinting') is None:
+        excluded["regallDWIToT1wToT1wCommonSpaceFingerprinting"] = False
+    if excluded.get('regallDWIToT1wToT1wCommonSpaceCHARMED_r3') is None:
+        excluded["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] = False
+    if excluded.get('regallDWIToT1wToT1wCommonSpaceDTI') is None:
+        excluded["regallDWIToT1wToT1wCommonSpaceDTI"] = False
+    
+    
+    
+    if (not (patient_status.get('preproc') is not None and patient_status["preproc"] == True) or forced["preproc"]) and not excluded["preproc"]:
         try:
             print("preproc",flush=True)
             study.preproc(eddy=True,
                         topup=True,
-                        forceSynb0DisCo=True,
+                        forceSynb0DisCo=False,
                         denoising=True,  
                         reslice=False, 
                         gibbs=False, 
@@ -115,7 +160,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             
     if patient_status.get('preproc') is not None and patient_status["preproc"] == True:
         
-        if not (patient_status.get('wm_mask_FSL_T1') is not None and patient_status["wm_mask_FSL_T1"] == True) or forced["wm_mask_FSL_T1"]:
+        if (not (patient_status.get('wm_mask_FSL_T1') is not None and patient_status["wm_mask_FSL_T1"] == True) or forced["wm_mask_FSL_T1"] ) and not excluded["wm_mask_FSL_T1"]:
             try:
                 print("wm_mask_FSL_T1",flush=True)
                 study.white_mask("wm_mask_FSL_T1", corr_gibbs=True, cpus=1, debug=False, patient_list_m=[p])
@@ -129,7 +174,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             with open(json_status_file,"w") as f:
                 json.dump(patient_status, f, indent = 6)
             
-        if not (patient_status.get('wm_mask_AP') is not None and patient_status["wm_mask_AP"] == True) or forced["wm_mask_AP"]:
+        if (not (patient_status.get('wm_mask_AP') is not None and patient_status["wm_mask_AP"] == True) or forced["wm_mask_AP"]) and not excluded["wm_mask_AP"]:
             try:
                 print("wm_mask_AP",flush=True)
                 study.white_mask("wm_mask_AP", cpus=1, debug=False, patient_list_m=[p])
@@ -143,7 +188,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             with open(json_status_file,"w") as f:
                 json.dump(patient_status, f, indent = 6)
             
-        if not (patient_status.get('dti') is not None and patient_status["dti"] == True) or forced["dti"]:
+        if (not (patient_status.get('dti') is not None and patient_status["dti"] == True) or forced["dti"]) and not excluded["dti"]:
             try:
                 print("dti",flush=True)
                 study.dti(patient_list_m=[p])
@@ -157,7 +202,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             with open(json_status_file,"w") as f:
                 json.dump(patient_status, f, indent = 6)
             
-        if not (patient_status.get('odf_msmtcsd') is not None and patient_status["odf_msmtcsd"] == True) or forced["odf_msmtcsd"]:
+        if (not (patient_status.get('odf_msmtcsd') is not None and patient_status["odf_msmtcsd"] == True) or forced["odf_msmtcsd"]) and not excluded["odf_msmtcsd"]:
             try:
                 print("odf_msmtcsd",flush=True)
                 study.odf_msmtcsd(num_peaks=2, peaks_threshold=0.25, cpus=1, patient_list_m=[p])
@@ -171,7 +216,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             with open(json_status_file,"w") as f:
                 json.dump(patient_status, f, indent = 6)
             
-        if not (patient_status.get('odf_csd') is not None and patient_status["odf_csd"] == True) or forced["odf_csd"]:
+        if (not (patient_status.get('odf_csd') is not None and patient_status["odf_csd"] == True) or forced["odf_csd"]) and not excluded["odf_csd"]:
             try:
                 print("odf_csd",flush=True)
                 study.odf_csd(num_peaks=2, peaks_threshold=0.25, patient_list_m=[p])
@@ -185,7 +230,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             with open(json_status_file,"w") as f:
                 json.dump(patient_status, f, indent = 6)
                 
-        if not (patient_status.get('noddi') is not None and patient_status["noddi"] == True) or forced["noddi"]:
+        if (not (patient_status.get('noddi') is not None and patient_status["noddi"] == True) or forced["noddi"]) and not excluded["noddi"]:
             try:
                 print("noddi",flush=True)
                 study.noddi(cpus=1, patient_list_m=[p])
@@ -197,8 +242,8 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             with open(json_status_file,"w") as f:
                 json.dump(patient_status, f, indent = 6)
            
-        if patient_status["odf_msmtcsd"] == True:
-            if (not (patient_status.get('fingerprinting') is not None and patient_status["fingerprinting"] == True) or forced["fingerprinting"]) and not singleShell:
+        if patient_status.get('odf_msmtcsd') is not None and patient_status["odf_msmtcsd"] == True:
+            if ((not (patient_status.get('fingerprinting') is not None and patient_status["fingerprinting"] == True) or forced["fingerprinting"]) and not singleShell) and not excluded["fingerprinting"]:
                 try:
                     print("fingerprinting",flush=True)
                     study.fingerprinting(dictionary_path=dic_path, mfdir="mf", patient_list_m=[p], cpus=1, peaksType="MSMT-CSD")
@@ -212,11 +257,11 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                 with open(json_status_file,"w") as f:
                     json.dump(patient_status, f, indent = 6)
                     
-        if patient_status.get('wm_mask_AP') is not None and patient_status.get('dti') is not None and patient_status["wm_mask_AP"] == True and patient_status["dti"] == True:
-            if not (patient_status.get('regallDWIToT1wToT1wCommonSpace') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True) or forced["regallDWIToT1wToT1wCommonSpace"]:
+        if patient_status.get('wm_mask_AP') is not None and patient_status["wm_mask_AP"] == True:
+            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpace') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True) or forced["regallDWIToT1wToT1wCommonSpace"]) and not excluded["regallDWIToT1wToT1wCommonSpace"]:
                 try:
                     print("regallDWIToT1wToT1wCommonSpace",flush=True)
-                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'_FA': 'dti', 'RD': 'dti', 'AD': 'dti', 'MD': 'dti'})
+                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={})
                     patient_status["regallDWIToT1wToT1wCommonSpace"] = True
                 except Exception as e:
                     patient_status["regallDWIToT1wToT1wCommonSpace"] = False
@@ -227,10 +272,29 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                 with open(json_status_file,"w") as f:
                     json.dump(patient_status, f, indent = 6)
                     
-        if not (patient_status.get('tracking') is not None and patient_status["tracking"] == True) or forced["tracking"]:
+                    
+        if patient_status.get('regallDWIToT1wToT1wCommonSpace') is not None and patient_status.get('dti') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True and patient_status["dti"] == True:
+            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceDTI') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] == True) or forced["regallDWIToT1wToT1wCommonSpaceDTI"]) and not excluded["regallDWIToT1wToT1wCommonSpaceDTI"]:
+                try:
+                    print("regallDWIToT1wToT1wCommonSpaceDTI",flush=True)
+                    regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'_FA': 'dti', 'RD': 'dti', 'AD': 'dti', 'MD': 'dti'})
+                    patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] = True
+                except Exception as e:
+                    patient_status["regallDWIToT1wToT1wCommonSpaceDTI"] = False
+                    error = True
+                    ex_type, ex_value, ex_traceback = sys.exc_info()
+                    printError(ex_type, ex_value, ex_traceback)
+                    print(e, flush=True)
+                with open(json_status_file,"w") as f:
+                    json.dump(patient_status, f, indent = 6)
+                    
+        if (not (patient_status.get('tracking') is not None and patient_status["tracking"] == True) or forced["tracking"]) and not excluded["tracking"]:
             try:
                 print("tracking",flush=True)
-                study.tracking(patient_list_m=[p])
+                if excluded["odf_msmtcsd"] == True or singleShell:
+                    study.tracking(patient_list_m=[p],streamline_number=1000000,msmtCSD=False)
+                else:
+                    study.tracking(patient_list_m=[p],streamline_number=1000000,msmtCSD=True)
                 patient_status["tracking"] = True
             except Exception as e:
                 patient_status["tracking"] = False
@@ -243,10 +307,10 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         
         if patient_status.get('regallDWIToT1wToT1wCommonSpace') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True and patient_status.get('tracking') is not None and patient_status["tracking"] == True:
             
-            if not (patient_status.get('inverseTransformAtlas') is not None and patient_status["inverseTransformAtlas"] == True) or forced["inverseTransformAtlas"]:
+            if (not (patient_status.get('inverseTransformAtlas') is not None and patient_status["inverseTransformAtlas"] == True) or forced["inverseTransformAtlas"]) and not excluded["inverseTransformAtlas"]:
                 try:
                     print("inverseTransformAtlas",flush=True)
-                    atlas_path = "/CECI/proj/pilab/PermeableAccess/meditant_h67jkhFfG9uyD/" + "BN_Atlas_246_1mm_MNI.nii.gz"
+                    atlas_path = "/CECI/proj/pilab/static_files_ELIKOPY/T1_MNI/" + "BN_Atlas_246_1mm_MNI.nii.gz"
                     inverseTransformAtlas(folder_path, p, atlasPath=atlas_path, atlasName="BN_246_1mm", DWI_type="AP")
                     patient_status["inverseTransformAtlas"] = True
                 except Exception as e:
@@ -258,12 +322,15 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                 with open(json_status_file,"w") as f:
                     json.dump(patient_status, f, indent = 6)
             
-            if not (patient_status.get('siftComputation') is not None and patient_status["siftComputation"] == True) or forced["siftComputation"]:
+            if (not (patient_status.get('siftComputation') is not None and patient_status["siftComputation"] == True) or forced["siftComputation"]) and not excluded["siftComputation"]:
                 try:
                     print("siftComputation",flush=True)
                     print("Starting SIFT")
                     fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
-                    siftComputation(folder_path, p, msmtCSD=True)
+                    if singleShell:
+                        study.sift(patient_list_m=[p], msmtCSD=False, streamline_number=500000)
+                    else:
+                        study.sift(patient_list_m=[p], msmtCSD=True, streamline_number=500000)
                     patient_status["siftComputation"] = True
                 except Exception as e:
                     patient_status["siftComputation"] = False
@@ -275,13 +342,14 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     json.dump(patient_status, f, indent = 6)
         
             if patient_status.get('siftComputation') is not None and patient_status["siftComputation"] == True:
-                if not (patient_status.get('connectivityMatrixSift') is not None and patient_status["connectivityMatrixSift"] == True) or forced["connectivityMatrixSift"]:
+                if (not (patient_status.get('connectivityMatrixSift') is not None and patient_status["connectivityMatrixSift"] == True) or forced["connectivityMatrixSift"]) and not excluded["connectivityMatrixSift"]:
                     try:
                         print("connectivityMatrixSift",flush=True)
                         fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
                         print("Starting conn matrix")
                         fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
-                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT")
+                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=False)
+                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=True)
                         patient_status["connectivityMatrixSift"] = True
                     except Exception as e:
                         patient_status["connectivityMatrixSift"] = False
@@ -292,13 +360,14 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     with open(json_status_file,"w") as f:
                         json.dump(patient_status, f, indent = 6)
                     
-            if not (patient_status.get('connectivityMatrixTCKGEN') is not None and patient_status["connectivityMatrixTCKGEN"] == True) or forced["connectivityMatrixTCKGEN"]:
+            if (not (patient_status.get('connectivityMatrixTCKGEN') is not None and patient_status["connectivityMatrixTCKGEN"] == True) or forced["connectivityMatrixTCKGEN"]) and not excluded["connectivityMatrixTCKGEN"]:
                 try:
                     print("connectivityMatrixTCKGEN",flush=True)
                     fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
                     print("Starting conn matrix")
                     fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
-                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN")
+                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=False)
+                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=True)
                     patient_status["connectivityMatrixTCKGEN"] = True
                 except Exception as e:
                     patient_status["connectivityMatrixTCKGEN"] = False
@@ -311,7 +380,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     
                     
         if patient_status.get('wm_mask_AP') is not None and patient_status.get('noddi') is not None and patient_status["wm_mask_AP"] == True and patient_status["noddi"] == True:
-            if not (patient_status.get('regallDWIToT1wToT1wCommonSpaceNoddi') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceNoddi"] == True) or forced["regallDWIToT1wToT1wCommonSpaceNoddi"]:
+            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceNoddi') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceNoddi"] == True) or forced["regallDWIToT1wToT1wCommonSpaceNoddi"]) and not excluded["regallDWIToT1wToT1wCommonSpaceNoddi"]:
                 try:
                     print("regallDWIToT1wToT1wCommonSpaceNoddi",flush=True)
                     regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'noddi_fiso': 'noddi', 'noddi_odi': 'noddi', 'noddi_icvf': 'noddi', 'noddi_fintra': 'noddi', 'noddi_fextra': 'noddi', 'noddi_fbundle': 'noddi'})
@@ -326,7 +395,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     json.dump(patient_status, f, indent = 6)
             
         if patient_status.get('wm_mask_AP') is not None and patient_status.get('fingerprinting') is not None and patient_status["wm_mask_AP"] == True and patient_status["fingerprinting"] == True:
-            if not (patient_status.get('regallDWIToT1wToT1wCommonSpaceFingerprinting') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceFingerprinting"] == True) or forced["regallDWIToT1wToT1wCommonSpaceFingerprinting"]:
+            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceFingerprinting') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceFingerprinting"] == True) or forced["regallDWIToT1wToT1wCommonSpaceFingerprinting"]) and not excluded["regallDWIToT1wToT1wCommonSpaceFingerprinting"]:
                 try:
                     print("regallDWIToT1wToT1wCommonSpaceFingerprinting",flush=True)
                     regallDWIToT1wToT1wCommonSpace(folder_path, p, DWI_type="AP", maskType=None, T1_filepath=None, T1wCommonSpace_filepath=T1_MNI, T1wCommonSpaceMask_filepath=T1_MNI_mask, metrics_dic={'mf_fvf_f0': 'mf', 'mf_fvf_f1': 'mf', 'mf_fvf_tot': 'mf', 'mf_frac_f0': 'mf', 'mf_frac_f1': 'mf', 'mf_frac_csf': 'mf', 'mf_DIFF_ex_f0': 'mf', 'mf_DIFF_ex_f1': 'mf', 'mf_DIFF_ex_tot': 'mf'})
@@ -341,7 +410,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     json.dump(patient_status, f, indent = 6)
                     
         if patient_status.get('wm_mask_AP') is not None and patient_status.get('CHARMED_r3') is not None and patient_status["wm_mask_AP"] == True and patient_status["CHARMED_r3"] == True:
-            if not (patient_status.get('regallDWIToT1wToT1wCommonSpaceCHARMED_r3') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] == True) or forced["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"]:
+            if (not (patient_status.get('regallDWIToT1wToT1wCommonSpaceCHARMED_r3') is not None and patient_status["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"] == True) or forced["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"]) and not excluded["regallDWIToT1wToT1wCommonSpaceCHARMED_r3"]:
                 try:
                     print("regallDWIToT1wToT1wCommonSpaceCHARMED_r3",flush=True)
                     

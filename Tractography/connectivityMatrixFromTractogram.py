@@ -6,8 +6,10 @@ import numpy as np
 from dipy.io.image import load_nifti, save_nifti
 import dipy.tracking
 from dipy.io.streamline import load_tractogram
+from scipy.ndimage import binary_dilation
+from skimage.morphology import ball
 
-def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN"):
+def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=False, dilation_radius=0):
 
     assert input in ["TCKGEN", "SIFT", "SIFT2"], "input must be either TCKGEN, SIFT or SIFT2"
 
@@ -20,13 +22,43 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN"):
     else:
         raise Exception("No ODF file found in " + folder_path + '/subjects/' + p + "/dMRI/ODF/")
         return
+        
 
     reg_path = folder_path + '/subjects/' + p + '/reg/'
     label_fpath = os.path.join(reg_path, p + "_Atlas_" + label_fname + ".nii.gz")
     labels_nii = nib.load(label_fpath)
     labels = np.round(labels_nii.get_fdata()).astype(int)
-
+    
     tracking_path = folder_path + '/subjects/' + p + "/dMRI/tractography/"
+    
+    if dilation_radius>0:
+        # Create a spherical structuring element for dilation
+        #struct_el = ball(dilation_radius)
+        
+        n_dim = len(labels.shape)
+        struct_el = np.zeros((3,)*n_dim)
+        for d in range(n_dim):
+            idc = tuple([slice(None) if d == i else 1 for i in range(n_dim)])
+            struct_el[idc] = 1
+
+        # Dilate each label separately (assuming labels are integer values starting from 1)
+        dilated_label_data = np.zeros_like(labels)
+        solo_labels = np.unique(labels)[1:]  # Exclude background (0)
+        for label in solo_labels:
+            mask = labels == label
+            dilated_mask = binary_dilation(mask, structure=struct_el)
+            dilated_label_data[dilated_mask] = label
+        
+        for label in solo_labels:
+            mask = labels == label
+            dilated_label_data[mask] = label
+        
+        labels = np.round(dilated_label_data).astype(int)
+        print("Shape:", dilated_label_data.shape)
+        dilated_label_img = nib.Nifti1Image(dilated_label_data, labels_nii.affine, dtype=np.uint8)
+        nib.save(dilated_label_img, tracking_path + f'dilated_{dilation_radius}_labels.nii.gz')
+
+    
     if input == "TCKGEN":
         tractogram_path = tracking_path + p + '_tractogram.trk'
     elif input == "SIFT":
@@ -44,9 +76,7 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN"):
         return
 
     # Compute the connectivity matrix
-    MV, grouping = dipy.tracking.utils.connectivity_matrix(tractogram.streamlines, img.affine, labels,
-                                             return_mapping=True,
-                                             mapping_as_streamlines=True)
+    MV, grouping = dipy.tracking.utils.connectivity_matrix(tractogram.streamlines, img.affine, labels, inclusive=inclusive, return_mapping=True, mapping_as_streamlines=True)
 
     MV = np.delete(MV, 0, 0)
     MV = np.delete(MV, 0, 1)
@@ -55,5 +85,5 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN"):
     import matplotlib.pyplot as plt
     plt.imshow(np.log1p(MV), interpolation='nearest')
 
-    np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_connectivityMatrix.npy", MV)
-    plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_connectivityMatrix.png")
+    np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix.npy", MV)
+    plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix.png")

@@ -44,13 +44,15 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
     else:
         raise Exception("No mapping_DWI_to_T1.p file found in " + reg_path)
         return
+        
+    #help(mapping_DWI_to_T1)
 
     atlas = nib.load(atlasPath)
     atlas_data = atlas.get_fdata()
     atlas_data_T1space = mapping_T1w_to_T1wCommonSpace.transform_inverse(atlas_data, interpolation='nearest')
-    atlas_data_T1space = np.around(atlas_data_T1space)
-    atlas_data_T1space = atlas_data_T1space.astype(np.uint8)
-    atlas_data_DWIspace = mapping_DWI_to_T1.transform_inverse(atlas_data_T1space)
+    #atlas_data_T1space = np.around(atlas_data_T1space)
+    #atlas_data_T1space = atlas_data_T1space.astype(np.uint8)
+    atlas_data_DWIspace = mapping_DWI_to_T1.transform_inverse(atlas_data_T1space, interpolation='nearest')
 
     atlasProjectedHeader = copy.deepcopy(atlas.header)
     atlasProjectedHeader["dim"][1:4] = atlas_data_DWIspace.shape[0:3]
@@ -60,7 +62,9 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP"):
     atlas_data_DWIspace = atlas_data_DWIspace.astype(np.uint8)
     out_DWI = nib.Nifti1Image(atlas_data_DWIspace, subject_map.affine, atlasProjectedHeader)
     out_DWI.to_filename(reg_path + p + "_Atlas_" + atlasName + "_InSubjectDWISpaceFrom_" + DWI_type + ".nii.gz")
-
-    #out_T1 = nib.Nifti1Image(atlas_data_T1space, None, None)
-    #out_T1.to_filename(reg_path + p + "_Atlas_" + atlasName + "_InSubjectT1Space.nii.gz")
+    
+    atlasProjectedT1Header = copy.deepcopy(atlas.header)
+    atlasProjectedT1Header["dim"][1:4] = atlas_data_T1space.shape[0:3]
+    out_T1 = nib.Nifti1Image(atlas_data_T1space, None, atlasProjectedT1Header)
+    out_T1.to_filename(reg_path + p + "_Atlas_" + atlasName + "_InSubjectT1Space.nii.gz")
 
