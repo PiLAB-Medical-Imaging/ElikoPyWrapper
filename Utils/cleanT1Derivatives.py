@@ -6,21 +6,24 @@ def cleanT1Derivatives(folder_path, p):
 
     T1_subject_path = os.path.join(folder_path, "subjects", p, "T1")
     reg_subject_path = os.path.join(folder_path, "subjects", p, "reg")
-    mask_reg_subject_path = os.path.join(folder_path, "subjects", p, "mask", "reg")
-    mask_subject_path = os.path.join(folder_path, "subjects", p, "mask")
+    mask_reg_subject_path = os.path.join(folder_path, "subjects", p, "masks", "reg")
+    mask_subject_path = os.path.join(folder_path, "subjects", p, "masks")
 
     # Delete content of reg folder
-    for f in os.listdir(reg_subject_path):
-        os.remove(os.path.join(reg_subject_path, f))
+    if os.path.exists(reg_subject_path):
+        for f in os.listdir(reg_subject_path):
+            os.remove(os.path.join(reg_subject_path, f))
 
     # Delete content of mask/reg folder
-    for f in os.listdir(mask_reg_subject_path):
-        os.remove(os.path.join(mask_reg_subject_path, f))
+    if os.path.exists(mask_reg_subject_path):
+        for f in os.listdir(mask_reg_subject_path):
+            os.remove(os.path.join(mask_reg_subject_path, f))
 
     # Delete content of T1 folder except for the <p>_T1.nii.gz and <p>_T1.json files
-    for f in os.listdir(T1_subject_path):
-        if f != p + "_T1.nii.gz" and f != p + "_T1.json":
-            os.remove(os.path.join(T1_subject_path, f))
+    if os.path.exists(T1_subject_path):
+        for f in os.listdir(T1_subject_path):
+            if f != p + "_T1.nii.gz" and f != p + "_T1.json":
+                os.remove(os.path.join(T1_subject_path, f))
 
     if os.path.exists(mask_subject_path, p + "_ap.nii.gz"):
         os.remove(os.path.join(mask_subject_path, p + "_ap.nii.gz"))
