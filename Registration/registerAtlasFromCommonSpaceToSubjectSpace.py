@@ -32,6 +32,8 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP", l
         else:
             raise Exception("No mapping_T1w_to_T1wRef.p file found in " + reg_path)
             return
+    else:
+        mapping_T1w_to_T1wRef = None
 
     DWI_subject = preproc_folder + p + "_dmri_preproc.nii.gz"
     AP_subject = folder_path + '/subjects/' + p + '/masks/' + p + '_ap.nii.gz'
