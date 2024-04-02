@@ -4,12 +4,13 @@ from elikopy.utils import get_patient_ref
 from elikopy.registration import applyTransform
 
 def applyTransformT1withT1Ref(folder_path, p, longitudinal=2, T1wCommonSpace_filepath="${FSLDIR}/data/standard/MNI152_T1_1mm_brain.nii.gz"):
+    print("[applyTransformT1withT1Ref] Processing subject " + p)
     T1_subject = folder_path + '/subjects/' + p + '/T1/' + p + "_T1_brain.nii.gz"
     reg_path = folder_path + '/subjects/' + p + '/reg/'
 
     T1_CommonSpace = os.path.expandvars(T1wCommonSpace_filepath)
 
-    if os.path.exists(reg_path + 'mapping_T1w_to_T1wRef.p'):
+    if not os.path.exists(reg_path + 'mapping_T1w_to_T1wRef.p'):
         raise ValueError("No mapping_T1w_to_T1wRef.p file found in the reg folder")
     with open(reg_path + 'mapping_T1w_to_T1wRef.p', 'rb') as handle:
         mapping_T1w_to_T1wRef = pickle.load(handle)
