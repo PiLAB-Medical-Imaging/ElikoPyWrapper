@@ -150,7 +150,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                         reslice=False, 
                         gibbs=False, 
                         biasfield=False,
-                        qc_reg=True,
+                        qc_reg=False,
                         starting_state=None, 
                         report=True, patient_list_m=[p])
             patient_status["preproc"] = True
