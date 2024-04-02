@@ -7,6 +7,7 @@ from dipy.io.image import load_nifti
 import nibabel as nib
 import sys
 from elikopy.registration import regallDWIToT1wToT1wCommonSpace, applyTransformToAllMapsInFolder
+
 import traceback
 
 wrapper_path = r"/CECI/proj/pilab/static_files_ELIKOPY/ElikoPyWrapper/"
@@ -16,6 +17,7 @@ sys.path.append(atlasreg_path)
 connM_path= wrapper_path + r"Tractography/"
 sys.path.append(connM_path)
 
+from registerT1toMNIusingT1Ref import applyTransformT1withT1Ref
 from registerAtlasFromCommonSpaceToSubjectSpace import inverseTransformAtlas
 from connectivityMatrixFromTractogram import connectivityMatrix
 
@@ -93,6 +95,8 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         forced[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"] = False
     if forced.get(f'regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}') is None:
         forced[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"] = False
+    if forced.get('inverseT1{longitudinal_txt}') is None:
+        forced[f"inverseT1{longitudinal_txt}"] = False
         
     
     if excluded.get('preproc') is None:
@@ -131,6 +135,8 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         excluded[f"regallDWIToT1wToT1wCommonSpaceCHARMED_r3{longitudinal_txt}"] = False
     if excluded.get(f'regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}') is None:
         excluded[f"regallDWIToT1wToT1wCommonSpaceDTI{longitudinal_txt}"] = False
+    if excluded.get(f'inverseT1{longitudinal_txt}') is None:
+        excluded[f"inverseT1{longitudinal_txt}"] = False
     
     
     
@@ -426,7 +432,32 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     print(e, flush=True)
                 with open(json_status_file,"w") as f:
                     json.dump(patient_status, f, indent = 6)
-                    
+
+        if longitudinal and patient_status.get(f'regallDWIToT1wToT1wCommonSpace{longitudinal_txt}') is not None and patient_status[
+            f"regallDWIToT1wToT1wCommonSpace{longitudinal_txt}"] == True and patient_status.get(
+                f'regallDWIToT1wToT1wCommonSpace') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True:
+
+            from elikopy.utils import get_patient_ref
+            p_ref = get_patient_ref(root=folder_path, patient=p, suffix_length=longitudinal)
+            reg_T1RefToCommonSpace_precomputed = folder_path + '/subjects/' + p_ref + '/reg/' + 'mapping_T1w_to_T1wCommonSpace.p'
+            if os.path.exists(reg_T1RefToCommonSpace_precomputed) and (not (patient_status.get(f'inverseT1{longitudinal_txt}') is not None and patient_status[
+                f"inverseT1{longitudinal_txt}"] == True) or forced[
+                    f"inverseT1{longitudinal_txt}"]) and not excluded[
+                f"inverseT1{longitudinal_txt}"]:
+                try:
+                    print(f"inverseT1{longitudinal_txt}", flush=True)
+                    applyTransformT1withT1Ref(folder_path, p, T1wCommonSpace_filepath= T1_MNI)
+                    patient_status[f"inverseT1{longitudinal_txt}"] = True
+                except Exception as e:
+                    patient_status[f"inverseT1{longitudinal_txt}"] = False
+                    error = True
+                    ex_type, ex_value, ex_traceback = sys.exc_info()
+                    printError(ex_type, ex_value, ex_traceback)
+                    print(e, flush=True)
+                with open(json_status_file, "w") as f:
+                    json.dump(patient_status, f, indent=6)
+
+
         with open(json_status_file,"w") as f:
             json.dump(patient_status, f, indent = 6)
             
