@@ -81,10 +81,10 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         forced[f"inverseTransformAtlas{longitudinal_txt}"] = False
     if forced.get('siftComputation') is None:
         forced["siftComputation"] = False
-    if forced.get('connectivityMatrixSift') is None:
-        forced["connectivityMatrixSift"] = False
-    if forced.get('connectivityMatrixTCKGEN') is None:
-        forced["connectivityMatrixTCKGEN"] = False
+    if forced.get(f'connectivityMatrixSift{longitudinal_txt}') is None:
+        forced[f"connectivityMatrixSift{longitudinal_txt}"] = False
+    if forced.get(f'connectivityMatrixTCKGEN{longitudinal_txt}') is None:
+        forced[f"connectivityMatrixTCKGEN{longitudinal_txt}"] = False
     if forced.get(f'regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}') is None:
         forced[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"] = False
     if forced.get(f'regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}') is None:
@@ -119,10 +119,10 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         excluded[f"inverseTransformAtlas{longitudinal_txt}"] = False
     if excluded.get('siftComputation') is None:
         excluded["siftComputation"] = False
-    if excluded.get('connectivityMatrixSift') is None:
-        excluded["connectivityMatrixSift"] = False
-    if excluded.get('connectivityMatrixTCKGEN') is None:
-        excluded["connectivityMatrixTCKGEN"] = False
+    if excluded.get(f'connectivityMatrixSift{longitudinal_txt}') is None:
+        excluded[f"connectivityMatrixSift{longitudinal_txt}"] = False
+    if excluded.get(f'connectivityMatrixTCKGEN{longitudinal_txt}') is None:
+        excluded[f"connectivityMatrixTCKGEN{longitudinal_txt}"] = False
     if excluded.get(f'regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}') is None:
         excluded[f"regallDWIToT1wToT1wCommonSpaceNoddi{longitudinal_txt}"] = False
     if excluded.get(f'regallDWIToT1wToT1wCommonSpaceFingerprinting{longitudinal_txt}') is None:
@@ -344,17 +344,17 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     json.dump(patient_status, f, indent = 6)
         
             if patient_status.get('siftComputation') is not None and patient_status["siftComputation"] == True:
-                if (not (patient_status.get('connectivityMatrixSift') is not None and patient_status["connectivityMatrixSift"] == True) or forced["connectivityMatrixSift"]) and not excluded["connectivityMatrixSift"]:
+                if (not (patient_status.get(f'connectivityMatrixSift{longitudinal_txt}') is not None and patient_status[f"connectivityMatrixSift{longitudinal_txt}"] == True) or forced[f"connectivityMatrixSift{longitudinal_txt}"]) and not excluded[f"connectivityMatrixSift{longitudinal_txt}"]:
                     try:
-                        print("connectivityMatrixSift",flush=True)
+                        print(f"connectivityMatrixSift{longitudinal_txt}",flush=True)
                         fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
                         print("Starting conn matrix")
                         fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
-                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=False)
-                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=True)
-                        patient_status["connectivityMatrixSift"] = True
+                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=False, longitudinal=longitudinal)
+                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=True, longitudinal=longitudinal)
+                        patient_status[f"connectivityMatrixSift{longitudinal_txt}"] = True
                     except Exception as e:
-                        patient_status["connectivityMatrixSift"] = False
+                        patient_status[f"connectivityMatrixSift{longitudinal_txt}"] = False
                         error = True
                         ex_type, ex_value, ex_traceback = sys.exc_info()
                         printError(ex_type, ex_value, ex_traceback)
@@ -362,17 +362,17 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     with open(json_status_file,"w") as f:
                         json.dump(patient_status, f, indent = 6)
                     
-            if (not (patient_status.get('connectivityMatrixTCKGEN') is not None and patient_status["connectivityMatrixTCKGEN"] == True) or forced["connectivityMatrixTCKGEN"]) and not excluded["connectivityMatrixTCKGEN"]:
+            if (not (patient_status.get(f'connectivityMatrixTCKGEN{longitudinal_txt}') is not None and patient_status[f"connectivityMatrixTCKGEN{longitudinal_txt}"] == True) or forced[f"connectivityMatrixTCKGEN{longitudinal_txt}"]) and not excluded[f"connectivityMatrixTCKGEN{longitudinal_txt}"]:
                 try:
-                    print("connectivityMatrixTCKGEN",flush=True)
+                    print(f"connectivityMatrixTCKGEN{longitudinal_txt}",flush=True)
                     fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
                     print("Starting conn matrix")
                     fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
-                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=False)
-                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=True)
-                    patient_status["connectivityMatrixTCKGEN"] = True
+                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=False, longitudinal=longitudinal)
+                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=True,  longitudinal=longitudinal)
+                    patient_status[f"connectivityMatrixTCKGEN{longitudinal_txt}"] = True
                 except Exception as e:
-                    patient_status["connectivityMatrixTCKGEN"] = False
+                    patient_status[f"connectivityMatrixTCKGEN{longitudinal_txt}"] = False
                     error = True
                     ex_type, ex_value, ex_traceback = sys.exc_info()
                     printError(ex_type, ex_value, ex_traceback)

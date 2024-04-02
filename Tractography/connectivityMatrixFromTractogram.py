@@ -9,7 +9,7 @@ from dipy.io.streamline import load_tractogram
 from scipy.ndimage import binary_dilation
 from skimage.morphology import ball
 
-def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=False, dilation_radius=0):
+def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=False, dilation_radius=0, longitudinal=False):
 
     assert input in ["TCKGEN", "SIFT", "SIFT2"], "input must be either TCKGEN, SIFT or SIFT2"
 
@@ -25,7 +25,10 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
         
 
     reg_path = folder_path + '/subjects/' + p + '/reg/'
-    label_fpath = os.path.join(reg_path, p + "_Atlas_" + label_fname + ".nii.gz")
+    if longitudinal:
+        label_fpath = os.path.join(reg_path, p + "_Atlas_" + label_fname + "_longitudinal.nii.gz")
+    else:
+        label_fpath = os.path.join(reg_path, p + "_Atlas_" + label_fname + ".nii.gz")
     labels_nii = nib.load(label_fpath)
     labels = np.round(labels_nii.get_fdata()).astype(int)
     
@@ -85,5 +88,9 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
     import matplotlib.pyplot as plt
     plt.imshow(np.log1p(MV), interpolation='nearest')
 
-    np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix.npy", MV)
-    plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix.png")
+    if longitudinal:
+        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix.npy", MV)
+        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix.png")
+    else:
+        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix.npy", MV)
+        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix.png")
