@@ -25,7 +25,7 @@ from connectivityMatrixFromTractogram import connectivityMatrix
 T1_MNI="${FSLDIR}/data/standard/MNI152_T1_1mm_brain.nii.gz"
 T1_MNI_mask="${FSLDIR}/data/standard/MNI152_T1_1mm_brain_mask.nii.gz"
 T1_MNI=r'/CECI/proj/pilab/static_files_ELIKOPY/T1_MNI/MNI_ICBM152_T1_NLIN_ASYM_09c_BRAIN.nii.gz'
-T1_MNI_mask=None
+T1_MNI_mask=r'/CECI/proj/pilab/static_files_ELIKOPY/T1_MNI/MNI_ICBM152_T1_NLIN_ASYM_09c_BRAINMASK.nii.gz'
 
 def printError(ex_type, ex_value, ex_traceback):
     # Extract unformatter stack traces as tuples
