@@ -438,7 +438,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                 with open(json_status_file,"w") as f:
                     json.dump(patient_status, f, indent = 6)
 
-        if longitudinal and patient_status.get(f'regallDWIToT1wToT1wCommonSpace_{DWI_type}{longitudinal_txt}') is not None and patient_status[
+        if longitudinal>0 and patient_status.get(f'regallDWIToT1wToT1wCommonSpace_{DWI_type}{longitudinal_txt}') is not None and patient_status[
             f"regallDWIToT1wToT1wCommonSpace_{DWI_type}{longitudinal_txt}"] == True and patient_status.get(
                 f'regallDWIToT1wToT1wCommonSpace') is not None and patient_status["regallDWIToT1wToT1wCommonSpace"] == True:
 
