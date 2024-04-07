@@ -47,6 +47,10 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="AP", l
         with open(reg_path + 'mapping_DWI_B0_to_T1.p', 'rb') as handle:
             mapping_DWI_to_T1 = pickle.load(handle)
         subject_map = nib.load(DWI_subject)
+    elif DWI_type == "B0FSL" and os.path.exists(reg_path + 'mapping_DWI_B0FSL_to_T1.p') and os.path.exists(DWI_subject):
+        with open(reg_path + 'mapping_DWI_B0FSL_to_T1.p', 'rb') as handle:
+            mapping_DWI_to_T1 = pickle.load(handle)
+        subject_map = nib.load(DWI_subject)
     elif DWI_type == "WMFOD" and os.path.exists(reg_path + 'mapping_DWI_WMFOD_to_T1.p') and os.path.exists(WM_FOD_subject):
         with open(reg_path + 'mapping_DWI_WMFOD_to_T1.p', 'rb') as handle:
             mapping_DWI_to_T1 = pickle.load(handle)
