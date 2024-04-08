@@ -16,7 +16,7 @@ def cleanPreproc(folder_path, p):
     topup_corr = os.path.join(preproc_path, "topup", p + "_topup_corr.nii.gz")
     if os.path.exists(topup_corr):
         os.remove(topup_corr)
-    synb0DISCO_folder = os.path.join(preproc_path, "topup", "synb0DISCO")
+    synb0DISCO_folder = os.path.join(preproc_path, "topup", "synb0-DisCo")
     if os.path.exists(synb0DISCO_folder):
         shutil.rmtree(synb0DISCO_folder)
 
