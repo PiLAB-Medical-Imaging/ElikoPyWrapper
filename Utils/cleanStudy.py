@@ -7,6 +7,11 @@ def cleanPreproc(folder_path, p):
 
     preproc_path = os.path.join(folder_path, "subjects", p, "dMRI", "preproc")
 
+    # Gibbs
+    gibbs_corrected = os.path.join(preproc_path, "gibbs", p + "_gibbscorrected.nii.gz")
+    if os.path.exists(gibbs_corrected):
+        os.remove(gibbs_corrected)
+
     # Mppca
     denoised = os.path.join(preproc_path, "mppca", p + "_mppca.nii.gz")
     if os.path.exists(denoised):
