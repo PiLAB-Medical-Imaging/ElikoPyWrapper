@@ -63,9 +63,9 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
 
     
     if input == "TCKGEN":
-        tractogram_path = tracking_path + p + '_tractogram.trk'
+        tractogram_path = tracking_path + p + '_tractogram.tck'
     elif input == "SIFT":
-        tractogram_path = tracking_path + p + '_tractogram_sift.trk'
+        tractogram_path = tracking_path + p + '_tractogram_sift.tck'
     elif input == "SIFT2":
         raise Exception("SIFT2 not implemented yet")
         pass # TODO

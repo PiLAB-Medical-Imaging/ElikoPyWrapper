@@ -37,3 +37,16 @@ def cleanPreproc(folder_path, p):
     if os.path.exists(eddy_range_cnr_maps):
         os.remove(eddy_range_cnr_maps)
 
+def cleanTractography(folder_path, p):
+
+    # Delete all Trk files in folder
+    tractography = os.path.join(folder_path, "subjects", p, "dMRI", "tractography")
+    if os.path.exists(tractography):
+        for f in os.listdir(tractography):
+            if f.endswith(".trk"):
+                os.remove(os.path.join(tractography, f))
+
+def cleanStudy(folder_path, p):
+
+    cleanPreproc(folder_path, p)
+    cleanTractography(folder_path, p)
