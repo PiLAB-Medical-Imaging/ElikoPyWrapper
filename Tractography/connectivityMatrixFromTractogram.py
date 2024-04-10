@@ -9,7 +9,7 @@ from dipy.io.streamline import load_tractogram
 from scipy.ndimage import binary_dilation
 from skimage.morphology import ball
 
-def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=False, dilation_radius=0, longitudinal=False, tractogram_filename="tractogram"):
+def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=False, dilation_radius=0, longitudinal=False, tractogram_filename="tractogram", suffix=""):
 
     assert input in ["TCKGEN", "SIFT", "SIFT2"], "input must be either TCKGEN, SIFT or SIFT2"
 
@@ -91,8 +91,8 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
     plt.imshow(np.log1p(MV), interpolation='nearest')
 
     if longitudinal:
-        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix.npy", MV)
-        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix.png")
+        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.npy", MV)
+        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.png")
     else:
-        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix.npy", MV)
-        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix.png")
+        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.npy", MV)
+        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.png")
