@@ -171,7 +171,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('wm_mask_FSL_T1') is not None and patient_status["wm_mask_FSL_T1"] == True) or forced["wm_mask_FSL_T1"] ) and not excluded["wm_mask_FSL_T1"]:
             try:
                 print("wm_mask_FSL_T1",flush=True)
-                study.white_mask("wm_mask_FSL_T1", corr_gibbs=True, cpus=1, debug=False, patient_list_m=[p], cpus=core_count)
+                study.white_mask("wm_mask_FSL_T1", corr_gibbs=True, debug=False, patient_list_m=[p], cpus=core_count)
                 patient_status["wm_mask_FSL_T1"] = True
             except Exception as e:
                 patient_status["wm_mask_FSL_T1"] = False
@@ -185,7 +185,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('wm_mask_AP') is not None and patient_status["wm_mask_AP"] == True) or forced["wm_mask_AP"]) and not excluded["wm_mask_AP"]:
             try:
                 print("wm_mask_AP",flush=True)
-                study.white_mask("wm_mask_AP", cpus=1, debug=False, patient_list_m=[p], cpus=core_count)
+                study.white_mask("wm_mask_AP", debug=False, patient_list_m=[p], cpus=core_count)
                 patient_status["wm_mask_AP"] = True
             except Exception as e:
                 patient_status["wm_mask_AP"] = False
