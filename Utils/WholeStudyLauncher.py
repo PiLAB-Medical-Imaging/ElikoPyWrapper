@@ -199,7 +199,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('dti') is not None and patient_status["dti"] == True) or forced["dti"]) and not excluded["dti"]:
             try:
                 print("dti",flush=True)
-                study.dti(patient_list_m=[p], cpus=core_count)
+                study.dti(patient_list_m=[p])
                 patient_status["dti"] = True
             except Exception as e:
                 patient_status["dti"] = False
