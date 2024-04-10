@@ -41,7 +41,7 @@ def printError(ex_type, ex_value, ex_traceback):
     print("Exception message : %s" %ex_value)
     print("Stack trace : %s" %stack_trace, flush=True)
 
-def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}, excluded={}, longitudinal=False, DWI_type="B0FSL"):
+def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}, excluded={}, longitudinal=False, DWI_type="B0FSL", core_count=1):
     study = elikopy.core.Elikopy(folder_path, slurm=False, slurm_email=slurm_email, cuda=False)
     
     longitudinal_txt = "" if not longitudinal else "_longitudinal"
@@ -152,7 +152,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                         biasfield=False,
                         qc_reg=False,
                         starting_state=None, 
-                        report=True, patient_list_m=[p])
+                        report=True, patient_list_m=[p], cpus=core_count)
             patient_status["preproc"] = True
         except Exception as e:
             patient_status["preproc"] = False
@@ -171,7 +171,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('wm_mask_FSL_T1') is not None and patient_status["wm_mask_FSL_T1"] == True) or forced["wm_mask_FSL_T1"] ) and not excluded["wm_mask_FSL_T1"]:
             try:
                 print("wm_mask_FSL_T1",flush=True)
-                study.white_mask("wm_mask_FSL_T1", corr_gibbs=True, cpus=1, debug=False, patient_list_m=[p])
+                study.white_mask("wm_mask_FSL_T1", corr_gibbs=True, cpus=1, debug=False, patient_list_m=[p], cpus=core_count)
                 patient_status["wm_mask_FSL_T1"] = True
             except Exception as e:
                 patient_status["wm_mask_FSL_T1"] = False
@@ -185,7 +185,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('wm_mask_AP') is not None and patient_status["wm_mask_AP"] == True) or forced["wm_mask_AP"]) and not excluded["wm_mask_AP"]:
             try:
                 print("wm_mask_AP",flush=True)
-                study.white_mask("wm_mask_AP", cpus=1, debug=False, patient_list_m=[p])
+                study.white_mask("wm_mask_AP", cpus=1, debug=False, patient_list_m=[p], cpus=core_count)
                 patient_status["wm_mask_AP"] = True
             except Exception as e:
                 patient_status["wm_mask_AP"] = False
@@ -199,7 +199,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('dti') is not None and patient_status["dti"] == True) or forced["dti"]) and not excluded["dti"]:
             try:
                 print("dti",flush=True)
-                study.dti(patient_list_m=[p])
+                study.dti(patient_list_m=[p], cpus=core_count)
                 patient_status["dti"] = True
             except Exception as e:
                 patient_status["dti"] = False
@@ -213,7 +213,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('odf_msmtcsd') is not None and patient_status["odf_msmtcsd"] == True) or forced["odf_msmtcsd"]) and not excluded["odf_msmtcsd"]:
             try:
                 print("odf_msmtcsd",flush=True)
-                study.odf_msmtcsd(num_peaks=2, peaks_threshold=0.25, cpus=1, patient_list_m=[p])
+                study.odf_msmtcsd(num_peaks=2, peaks_threshold=0.25, cpus=core_count, patient_list_m=[p])
                 patient_status["odf_msmtcsd"] = True
             except Exception as e:
                 patient_status["odf_msmtcsd"] = False
@@ -227,7 +227,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('odf_csd') is not None and patient_status["odf_csd"] == True) or forced["odf_csd"]) and not excluded["odf_csd"]:
             try:
                 print("odf_csd",flush=True)
-                study.odf_csd(num_peaks=2, peaks_threshold=0.25, patient_list_m=[p])
+                study.odf_csd(num_peaks=2, peaks_threshold=0.25, patient_list_m=[p], cpus=core_count)
                 patient_status["odf_csd"] = True
             except Exception as e:
                 patient_status["odf_csd"] = False
@@ -241,7 +241,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
         if (not (patient_status.get('noddi') is not None and patient_status["noddi"] == True) or forced["noddi"]) and not excluded["noddi"]:
             try:
                 print("noddi",flush=True)
-                study.noddi(cpus=1, patient_list_m=[p])
+                study.noddi(cpus=core_count, patient_list_m=[p])
                 patient_status["noddi"] = True
             except Exception as e:
                 print(e, flush=True)
@@ -254,7 +254,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             if ((not (patient_status.get('fingerprinting') is not None and patient_status["fingerprinting"] == True) or forced["fingerprinting"]) and not singleShell) and not excluded["fingerprinting"]:
                 try:
                     print("fingerprinting",flush=True)
-                    study.fingerprinting(dictionary_path=dic_path, mfdir="mf", patient_list_m=[p], cpus=1, peaksType="MSMT-CSD")
+                    study.fingerprinting(dictionary_path=dic_path, mfdir="mf", patient_list_m=[p], peaksType="MSMT-CSD", cpus=core_count)
                     patient_status["fingerprinting"] = True
                 except Exception as e:
                     patient_status["fingerprinting"] = False
@@ -300,9 +300,9 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
             try:
                 print("tracking",flush=True)
                 if excluded["odf_msmtcsd"] == True or singleShell:
-                    study.tracking(patient_list_m=[p],streamline_number=1000000,msmtCSD=False)
+                    study.tracking(patient_list_m=[p],streamline_number=1000000,msmtCSD=False, cpus=core_count)
                 else:
-                    study.tracking(patient_list_m=[p],streamline_number=1000000,msmtCSD=True)
+                    study.tracking(patient_list_m=[p],streamline_number=1000000,msmtCSD=True, cpus=core_count)
                 patient_status["tracking"] = True
             except Exception as e:
                 patient_status["tracking"] = False
@@ -336,9 +336,9 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     print("Starting SIFT")
                     fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
                     if singleShell:
-                        study.sift(patient_list_m=[p], msmtCSD=False, streamline_number=500000)
+                        study.sift(patient_list_m=[p], msmtCSD=False, streamline_number=500000, cpus=core_count)
                     else:
-                        study.sift(patient_list_m=[p], msmtCSD=True, streamline_number=500000)
+                        study.sift(patient_list_m=[p], msmtCSD=True, streamline_number=500000, cpus=core_count)
                     patient_status["siftComputation"] = True
                 except Exception as e:
                     patient_status["siftComputation"] = False
