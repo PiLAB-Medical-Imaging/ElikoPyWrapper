@@ -60,7 +60,7 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
         
         labels = np.round(dilated_label_data).astype(int)
         print("Shape:", dilated_label_data.shape)
-        dilated_label_img = nib.Nifti1Image(dilated_label_data, labels_nii.affine, dtype=np.uint8)
+        dilated_label_img = nib.Nifti1Image(dilated_label_data, labels_nii.affine, dtype=np.uint16)
         nib.save(dilated_label_img, tracking_path + f'dilated_{dilation_radius}_labels.nii.gz')
 
     
