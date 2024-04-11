@@ -74,7 +74,7 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="BOFSL"
 
     #atlas_data_DWIspace = np.around(atlas_data_DWIspace)
     #atlas_data_DWIspace = atlas_data_DWIspace.astype(np.uint16)
-    out_DWI = nib.Nifti1Image(atlas_data_DWIspace, subject_map.affine, atlas_data_DWIspace)
+    out_DWI = nib.Nifti1Image(atlas_data_DWIspace, subject_map.affine)
     if longitudinal:
         out_DWI.to_filename(reg_path + p + "_Atlas_" + atlasName + "_InSubjectDWISpaceFrom_" + DWI_type + "_longitudinal.nii.gz")
     else:
@@ -84,7 +84,7 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="BOFSL"
     atlasProjectedT1Header["dim"][1:4] = atlas_data_T1space.shape[0:3]
     T1_brain = folder_path + '/subjects/' + p + '/T1/' + p + "_T1_brain.nii.gz"
     T1_brain_img = nib.load(T1_brain)
-    out_T1 = nib.Nifti1Image(atlas_data_T1space, T1_brain_img.affine, atlas_data_T1space)
+    out_T1 = nib.Nifti1Image(atlas_data_T1space, T1_brain_img.affine)
     if longitudinal:
         out_T1.to_filename(reg_path + p + "_Atlas_" + atlasName + "_InSubjectT1Space_longitudinal.nii.gz")
     else:
