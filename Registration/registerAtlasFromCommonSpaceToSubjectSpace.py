@@ -15,7 +15,7 @@ from dipy.align.transforms import (TranslationTransform3D,
                                    AffineTransform3D)
 from dipy.align.imwarp import SymmetricDiffeomorphicRegistration
 
-def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="BOFSL", longitudinal=False):
+def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="B0FSL", longitudinal=False):
     preproc_folder = folder_path + '/subjects/' + p + '/dMRI/preproc/'
     reg_path = folder_path + '/subjects/' + p + '/reg/'
     if os.path.exists(reg_path + 'mapping_T1w_to_T1wCommonSpace.p'):

@@ -7,7 +7,7 @@ from dipy.io.image import load_nifti
 import nibabel as nib
 import sys
 from elikopy.registration import regallDWIToT1wToT1wCommonSpace, applyTransformToAllMapsInFolder
-
+from elikopy.utils import update_status
 import traceback
 
 wrapper_path = r"/CECI/proj/pilab/static_files_ELIKOPY/ElikoPyWrapper/"
@@ -50,7 +50,8 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
     
     print(excluded)
     
-    dic_path = "/CECI/proj/pilab/static_files_ELIKOPY/mf_dic/dictionary-fixedraddist_scheme-StLucGE.mat"
+    #dic_path = "/CECI/proj/pilab/static_files_ELIKOPY/mf_dic/dictionary-fixedraddist_scheme-StLucGE.mat"
+    dic_path = "/CECI/proj/pilab/static_files_ELIKOPY/mf_dic/dictionary-fixedraddist_scheme-StLucGE_size-exhaustive.mat"
     error = False
     json_status_file = os.path.join(folder_path,"subjects",p,f"{p}_status.json")
     if os.path.exists(json_status_file):
@@ -152,7 +153,7 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                         biasfield=False,
                         qc_reg=False,
                         starting_state=None, 
-                        report=True, patient_list_m=[p], cpus=core_count)
+                        report=True, patient_list_m=[p], cpus=core_count, eddy_additional_arg=" --data_is_shelled ")
             patient_status["preproc"] = True
         except Exception as e:
             patient_status["preproc"] = False
@@ -320,6 +321,8 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     print(f"inverseTransformAtlas_{DWI_type}{longitudinal_txt}",flush=True)
                     atlas_path = "/CECI/proj/pilab/static_files_ELIKOPY/T1_MNI/" + "BN_Atlas_246_1mm_MNI.nii.gz"
                     inverseTransformAtlas(folder_path, p, atlasPath=atlas_path, atlasName="BN_246_1mm", DWI_type=DWI_type, longitudinal=longitudinal)
+                    atlas_path = "/CECI/proj/pilab/static_files_ELIKOPY/T1_MNI/" + "BN_Atlas_280_1mm_MNI_cerebellum.nii.gz"
+                    inverseTransformAtlas(folder_path, p, atlasPath=atlas_path, atlasName="BN_280_1mm", DWI_type=DWI_type, longitudinal=longitudinal)
                     patient_status[f"inverseTransformAtlas_{DWI_type}{longitudinal_txt}"] = True
                 except Exception as e:
                     patient_status[f"inverseTransformAtlas_{DWI_type}{longitudinal_txt}"] = False
@@ -334,7 +337,6 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                 try:
                     print("siftComputation",flush=True)
                     print("Starting SIFT")
-                    fname="BN_246_1mm_InSubjectDWISpaceFrom_AP"
                     if singleShell:
                         study.sift(patient_list_m=[p], msmtCSD=False, streamline_number=500000, cpus=core_count)
                     else:
@@ -354,11 +356,14 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     or forced[f"connectivityMatrixSift_{DWI_type}{longitudinal_txt}"]) and not excluded[f"connectivityMatrixSift_{DWI_type}{longitudinal_txt}"]:
                     try:
                         print(f"connectivityMatrixSift_{DWI_type}{longitudinal_txt}",flush=True)
-                        fname=f"BN_246_1mm_InSubjectDWISpaceFrom_{DWI_type}"
                         print("Starting conn matrix")
                         fname=f"BN_246_1mm_InSubjectDWISpaceFrom_{DWI_type}"
                         connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=False, longitudinal=longitudinal)
                         connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=True, longitudinal=longitudinal)
+                        fname=f"BN_280_1mm_InSubjectDWISpaceFrom_{DWI_type}"
+                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=False, longitudinal=longitudinal)
+                        connectivityMatrix(folder_path, p, label_fname=fname, input="SIFT", dilation_radius=1, inclusive=True, longitudinal=longitudinal)
+                        
                         patient_status[f"connectivityMatrixSift_{DWI_type}{longitudinal_txt}"] = True
                     except Exception as e:
                         patient_status[f"connectivityMatrixSift_{DWI_type}{longitudinal_txt}"] = False
@@ -376,6 +381,9 @@ def processingPipeline(folder_path, p, slurm_email, singleShell=False, forced={}
                     fname=f"BN_246_1mm_InSubjectDWISpaceFrom_{DWI_type}"
                     print("Starting conn matrix")
                     fname=f"BN_246_1mm_InSubjectDWISpaceFrom_{DWI_type}"
+                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=False, longitudinal=longitudinal)
+                    connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=True,  longitudinal=longitudinal)
+                    fname=f"BN_280_1mm_InSubjectDWISpaceFrom_{DWI_type}"
                     connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=False, longitudinal=longitudinal)
                     connectivityMatrix(folder_path, p, label_fname=fname, input="TCKGEN", dilation_radius=1, inclusive=True,  longitudinal=longitudinal)
                     patient_status[f"connectivityMatrixTCKGEN_{DWI_type}{longitudinal_txt}"] = True
