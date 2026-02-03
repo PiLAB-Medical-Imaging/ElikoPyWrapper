@@ -8,6 +8,160 @@ import dipy.tracking
 from dipy.io.streamline import load_tractogram
 from scipy.ndimage import binary_dilation
 from skimage.morphology import ball
+from collections import defaultdict
+from dipy.tracking._utils import _mapping_to_voxel, _to_voxel_coordinates
+from nibabel.streamlines import ArraySequence as Streamlines
+from itertools import combinations
+
+def load_sift2_weights(weights_file: str, mu_file: str):
+
+    text = []
+
+    f = open(weights_file, "r")
+    for x in f:
+        text.append(x)
+    f.close()
+    
+    f = open(mu_file, "r")
+    for x in f:
+        mu=float(x)
+    f.close()
+
+    w = np.array([float(i) for i in text[1].split(' ')], dtype='float32')
+    
+    return w,mu
+
+
+def dipy_connectivity_matrix(
+    streamlines,
+    affine,
+    label_volume,
+    *,
+    inclusive=False,
+    symmetric=True,
+    weights=None,
+    discard_stream_size=0,
+    return_mapping=False,
+    mapping_as_streamlines=False,
+):
+    """Count the streamlines that start and end at each label pair.
+
+    Parameters
+    ----------
+    streamlines : sequence
+        A sequence of streamlines.
+    affine : array_like (4, 4)
+        The mapping from voxel coordinates to streamline coordinates.
+        The voxel_to_rasmm matrix, typically from a NIFTI file.
+    label_volume : ndarray
+        An image volume with an integer data type, where the intensities in the
+        volume map to anatomical structures.
+    inclusive: bool
+        Whether to analyze the entire streamline, as opposed to just the
+        endpoints.
+    symmetric : bool, optional
+        Symmetric means we don't distinguish between start and end points. If
+        symmetric is True, ``matrix[i, j] == matrix[j, i]``.
+    weights : ndarray, optional
+        A 1D array of size n, containing the weights of each of the n
+        streamlines.
+    discard_stream_size : int, optional
+        If the length of a streamline is less than or equal to this value, it
+        will not be included in the connectivity matrix. When 0, no filtering
+        is applied. This is useful for ignoring very short streamlines that
+        are likely to be noise.
+    return_mapping : bool, optional
+        If True, a mapping is returned which maps matrix indices to
+        streamlines.
+    mapping_as_streamlines : bool, optional
+        If True voxel indices map to lists of streamline objects. Otherwise
+        voxel indices map to lists of integers.
+
+    Returns
+    -------
+    matrix : ndarray
+        The number of connection between each pair of regions in
+        `label_volume`.
+    mapping : defaultdict(list)
+        ``mapping[i, j]`` returns all the streamlines that connect region `i`
+        to region `j`. If `symmetric` is True mapping will only have one key
+        for each start end pair such that if ``i < j`` mapping will have key
+        ``(i, j)`` but not key ``(j, i)``.
+    """
+
+    # Error checking on label_volume
+    kind = label_volume.dtype.kind
+    labels_positive = (kind == "u") or ((kind == "i") and (label_volume.min() >= 0))
+    valid_label_volume = labels_positive and label_volume.ndim == 3
+    if not valid_label_volume:
+        raise ValueError(
+            "label_volume must be a 3d integer array with non-negative label values"
+        )
+
+    mapping = defaultdict(list)
+    lin_T, offset = _mapping_to_voxel(affine)
+
+    if type(streamlines).__name__ == "generator":
+        streamlines = Streamlines(streamlines)
+
+    if weights is None:
+        weights = np.ones(len(streamlines))
+        matrix = np.zeros(
+            (np.max(label_volume) + 1, np.max(label_volume) + 1), dtype=np.int64
+        )
+    else:
+        matrix = np.zeros((np.max(label_volume) + 1, np.max(label_volume) + 1))
+
+    if discard_stream_size > 0:
+        (keep_idx,) = np.where(streamlines._lengths > discard_stream_size)
+        streamlines = streamlines[keep_idx]
+        weights = weights[keep_idx]
+
+    if inclusive:
+        for i, sl in enumerate(streamlines):
+            sl = _to_voxel_coordinates(sl, lin_T, offset)
+            x, y, z = sl.T
+            if symmetric:
+                crossed_labels = np.unique(label_volume[x, y, z])
+            else:
+                crossed_labels = np.unique(label_volume[x, y, z], return_index=True)
+                crossed_labels = crossed_labels[0][np.argsort(crossed_labels[1])]
+
+            for comb in combinations(crossed_labels, 2):
+                matrix[comb] += weights[i]
+
+                if return_mapping:
+                    if mapping_as_streamlines:
+                        mapping[comb].append(streamlines[i])
+                    else:
+                        mapping[comb].append(i)
+
+    else:
+        streamlines_end = np.array([sl[[0, -1]] for sl in streamlines])
+        streamlines_end = _to_voxel_coordinates(streamlines_end, lin_T, offset)
+        x, y, z = streamlines_end.T
+        if symmetric:
+            end_labels = np.sort(label_volume[x, y, z], axis=0)
+        else:
+            end_labels = label_volume[x, y, z]
+        np.add.at(matrix, (end_labels[0].T, end_labels[1].T), weights)
+
+        if return_mapping:
+            if mapping_as_streamlines:
+                for i, (a, b) in enumerate(end_labels.T):
+                    mapping[a, b].append(streamlines[i])
+            else:
+                for i, (a, b) in enumerate(end_labels.T):
+                    mapping[a, b].append(i)
+
+    if symmetric:
+        matrix = np.maximum(matrix, matrix.T)
+
+    if return_mapping:
+        return (matrix, mapping)
+    else:
+        return matrix
+
 
 def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=False, dilation_radius=0, longitudinal=False, tractogram_filename="tractogram", suffix=""):
 
@@ -66,11 +220,16 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
     
     if input == "TCKGEN":
         tractogram_path = tracking_path + p + f'_{tractogram_filename}.tck'
+        weights = None
     elif input == "SIFT":
         tractogram_path = tracking_path + p + f'_{tractogram_filename}_sift.tck'
+        weights = None
     elif input == "SIFT2":
-        raise Exception("SIFT2 not implemented yet")
-        pass # TODO
+        tractogram_path = tracking_path + p + f'_{tractogram_filename}.tck'
+        weights_file = tracking_path + p + f'_{tractogram_filename}_sift2.txt'
+        mu_file = tracking_path + p + f'_{tractogram_filename}_sift2_mu.txt'
+        weights,mu = load_sift2_weights(weights_file, mu_file)
+        weights = weights*mu
     else:
         raise Exception("Invalid input type")
 
@@ -81,7 +240,11 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
         return
 
     # Compute the connectivity matrix
-    MV, grouping = dipy.tracking.utils.connectivity_matrix(tractogram.streamlines, img.affine, labels, inclusive=inclusive, return_mapping=True, mapping_as_streamlines=True)
+    MV, grouping = dipy_connectivity_matrix(tractogram.streamlines, img.affine,
+                                            labels, inclusive=inclusive,
+                                            return_mapping=True,
+                                            mapping_as_streamlines=True,
+                                            weights = weights)
 
     MV = np.delete(MV, 0, 0)
     MV = np.delete(MV, 0, 1)
