@@ -13,6 +13,7 @@ from dipy.tracking._utils import _mapping_to_voxel, _to_voxel_coordinates
 from nibabel.streamlines import ArraySequence as Streamlines
 from itertools import combinations
 
+
 def load_sift2_weights(weights_file: str, mu_file: str):
 
     text = []
@@ -21,18 +22,18 @@ def load_sift2_weights(weights_file: str, mu_file: str):
     for x in f:
         text.append(x)
     f.close()
-    
+
     f = open(mu_file, "r")
     for x in f:
-        mu=float(x)
+        mu = float(x)
     f.close()
 
     w = np.array([float(i) for i in text[1].split(' ')], dtype='float32')
-    
-    return w,mu
+
+    return w, mu
 
 
-def dipy_connectivity_matrix(
+def dipy_connectivity_matrix_old(
     streamlines,
     affine,
     label_volume,
@@ -91,7 +92,8 @@ def dipy_connectivity_matrix(
 
     # Error checking on label_volume
     kind = label_volume.dtype.kind
-    labels_positive = (kind == "u") or ((kind == "i") and (label_volume.min() >= 0))
+    labels_positive = (kind == "u") or (
+        (kind == "i") and (label_volume.min() >= 0))
     valid_label_volume = labels_positive and label_volume.ndim == 3
     if not valid_label_volume:
         raise ValueError(
@@ -124,8 +126,10 @@ def dipy_connectivity_matrix(
             if symmetric:
                 crossed_labels = np.unique(label_volume[x, y, z])
             else:
-                crossed_labels = np.unique(label_volume[x, y, z], return_index=True)
-                crossed_labels = crossed_labels[0][np.argsort(crossed_labels[1])]
+                crossed_labels = np.unique(
+                    label_volume[x, y, z], return_index=True)
+                crossed_labels = crossed_labels[0][np.argsort(
+                    crossed_labels[1])]
 
             for comb in combinations(crossed_labels, 2):
                 matrix[comb] += weights[i]
@@ -163,37 +167,183 @@ def dipy_connectivity_matrix(
         return matrix
 
 
+def dipy_connectivity_matrix(streamlines, affine, label_volume, *,
+                             inclusive=False, symmetric=True, weights=None,
+                             discard_stream_size=0, return_mapping=False,
+                             mapping_as_streamlines=False,):
+    """
+    Modified to accept 4D atlases. Count the streamlines that start and end at
+    each label pair.
+
+    Parameters
+    ----------
+    streamlines : sequence
+        A sequence of streamlines.
+    affine : array_like (4, 4)
+        The mapping from voxel coordinates to streamline coordinates.
+        The voxel_to_rasmm matrix, typically from a NIFTI file.
+    label_volume : ndarray
+        An image volume with an integer data type, where the intensities in the
+        volume map to anatomical structures.
+    inclusive: bool
+        Whether to analyze the entire streamline, as opposed to just the
+        endpoints.
+    symmetric : bool, optional
+        Symmetric means we don't distinguish between start and end points. If
+        symmetric is True, ``matrix[i, j] == matrix[j, i]``.
+    weights : ndarray, optional
+        A 1D array of size n, containing the weights of each of the n
+        streamlines.
+    discard_stream_size : int, optional
+        If the length of a streamline is less than or equal to this value, it
+        will not be included in the connectivity matrix. When 0, no filtering
+        is applied. This is useful for ignoring very short streamlines that
+        are likely to be noise.
+    return_mapping : bool, optional
+        If True, a mapping is returned which maps matrix indices to
+        streamlines.
+    mapping_as_streamlines : bool, optional
+        If True voxel indices map to lists of streamline objects. Otherwise
+        voxel indices map to lists of integers.
+
+    Returns
+    -------
+    matrix : ndarray
+        The number of connection between each pair of regions in
+        `label_volume`.
+    mapping : defaultdict(list)
+        ``mapping[i, j]`` returns all the streamlines that connect region `i`
+        to region `j`. If `symmetric` is True mapping will only have one key
+        for each start end pair such that if ``i < j`` mapping will have key
+        ``(i, j)`` but not key ``(j, i)``.
+    """
+
+    # Accept 3D or 4D atlases
+    if label_volume.ndim == 3:
+        label_volume = label_volume[..., np.newaxis]
+    elif label_volume.ndim != 4:
+        raise ValueError("label_volume must be 3D or 4D.")
+
+    if label_volume.dtype.kind not in ("u", "i") or np.any(label_volume < 0):
+        raise ValueError("Labels must be non-negative integers.")
+
+    if type(streamlines).__name__ == "generator":
+        streamlines = Streamlines(streamlines)
+
+    n = len(streamlines)
+
+    if weights is None:
+        weights = np.ones(n)
+    else:
+        weights = np.asarray(weights)
+        if len(weights) != n:
+            raise ValueError("Incorrect number of weights.")
+
+    original_indices = np.arange(n)
+
+    if discard_stream_size > 0:
+        keep = np.where(streamlines._lengths > discard_stream_size)[0]
+        streamlines = streamlines[keep]
+        weights = weights[keep]
+        original_indices = original_indices[keep]
+
+    max_label = int(label_volume.max())
+    matrix = np.zeros((max_label + 1, max_label + 1),
+                      dtype=np.result_type(weights.dtype, np.int64))
+
+    mapping = defaultdict(list)
+    lin_T, offset = _mapping_to_voxel(affine)
+
+    for i, sl in enumerate(streamlines):
+
+        if len(sl) == 0:
+            continue
+
+        if inclusive:
+            voxels = _to_voxel_coordinates(sl, lin_T, offset)
+
+            x, y, z = voxels.T
+
+            labels = np.unique(label_volume[x, y, z, :])
+
+            for a, b in combinations(labels, 2):
+                a, b = int(a), int(b)
+                if symmetric:
+                    a, b = sorted((a, b))
+
+                matrix[a, b] += weights[i]
+
+                if return_mapping:
+                    mapping[(a, b)].append(streamlines[i] if mapping_as_streamlines
+                                           else original_indices[i])
+
+        else:
+            endpoints = _to_voxel_coordinates(sl[[0, -1]], lin_T, offset)
+
+            x, y, z = endpoints.T
+
+            start = label_volume[x[0], y[0], z[0], :]
+            end = label_volume[x[1], y[1], z[1], :]
+
+            for a in start:
+                for b in end:
+                    a, b = int(a), int(b)
+
+                    if symmetric:
+                        a, b = sorted((a, b))
+
+                    matrix[a, b] += weights[i]
+
+                    if return_mapping:
+                        mapping[(a, b)].append(streamlines[i] if mapping_as_streamlines
+                                               else original_indices[i])
+
+    if symmetric:
+        matrix = np.maximum(matrix, matrix.T)
+
+    if return_mapping:
+        return matrix, mapping
+
+    return matrix
+
+
 def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=False, dilation_radius=0, longitudinal=False, tractogram_filename="tractogram", suffix=""):
 
-    assert input in ["TCKGEN", "SIFT", "SIFT2"], "input must be either TCKGEN, SIFT or SIFT2"
+    assert input in ["TCKGEN", "SIFT",
+                     "SIFT2"], "input must be either TCKGEN, SIFT or SIFT2"
 
-    dwi_path = folder_path + '/subjects/' + p + '/dMRI/preproc/' + p + '_dmri_preproc.nii.gz'
+    dwi_path = folder_path + '/subjects/' + p + \
+        '/dMRI/preproc/' + p + '_dmri_preproc.nii.gz'
 
-    odf_wmfod = folder_path + '/subjects/' + p + "/dMRI/ODF/MSMT-CSD/" + p + "_MSMT-CSD_WM_ODF.nii.gz"
-    odf_csd_mrtrix = folder_path + '/subjects/' + p + "/dMRI/ODF/CSD/" + p + "_CSD_SH_ODF_mrtrix.nii.gz"
+    odf_wmfod = folder_path + '/subjects/' + p + \
+        "/dMRI/ODF/MSMT-CSD/" + p + "_MSMT-CSD_WM_ODF.nii.gz"
+    odf_csd_mrtrix = folder_path + '/subjects/' + p + \
+        "/dMRI/ODF/CSD/" + p + "_CSD_SH_ODF_mrtrix.nii.gz"
     if os.path.exists(odf_wmfod):
         img = nib.load(odf_wmfod)
     elif os.path.exists(odf_csd_mrtrix):
         img = nib.load(odf_csd_mrtrix)
     else:
-        raise Exception("No ODF file found in " + folder_path + '/subjects/' + p + "/dMRI/ODF/")
+        raise Exception("No ODF file found in " + folder_path +
+                        '/subjects/' + p + "/dMRI/ODF/")
         return
-        
 
     reg_path = folder_path + '/subjects/' + p + '/reg/'
     if longitudinal:
-        label_fpath = os.path.join(reg_path, p + "_Atlas_" + label_fname + "_longitudinal.nii.gz")
+        label_fpath = os.path.join(
+            reg_path, p + "_Atlas_" + label_fname + "_longitudinal.nii.gz")
     else:
-        label_fpath = os.path.join(reg_path, p + "_Atlas_" + label_fname + ".nii.gz")
+        label_fpath = os.path.join(
+            reg_path, p + "_Atlas_" + label_fname + ".nii.gz")
     labels_nii = nib.load(label_fpath)
     labels = np.round(labels_nii.get_fdata()).astype(int)
-    
+
     tracking_path = folder_path + '/subjects/' + p + "/dMRI/tractography/"
-    
-    if dilation_radius>0:
+
+    if dilation_radius > 0:
         # Create a spherical structuring element for dilation
-        #struct_el = ball(dilation_radius)
-        
+        # struct_el = ball(dilation_radius)
+
         n_dim = len(labels.shape)
         struct_el = np.zeros((3,)*n_dim)
         for d in range(n_dim):
@@ -207,17 +357,18 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
             mask = labels == label
             dilated_mask = binary_dilation(mask, structure=struct_el)
             dilated_label_data[dilated_mask] = label
-        
+
         for label in solo_labels:
             mask = labels == label
             dilated_label_data[mask] = label
-        
+
         labels = np.round(dilated_label_data).astype(int)
         print("Shape:", dilated_label_data.shape)
-        dilated_label_img = nib.Nifti1Image(dilated_label_data, labels_nii.affine, dtype=np.uint16)
-        nib.save(dilated_label_img, tracking_path + f'dilated_{dilation_radius}_labels.nii.gz')
+        dilated_label_img = nib.Nifti1Image(
+            dilated_label_data, labels_nii.affine, dtype=np.uint16)
+        nib.save(dilated_label_img, tracking_path +
+                 f'dilated_{dilation_radius}_labels.nii.gz')
 
-    
     if input == "TCKGEN":
         tractogram_path = tracking_path + p + f'_{tractogram_filename}.tck'
         weights = None
@@ -228,7 +379,7 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
         tractogram_path = tracking_path + p + f'_{tractogram_filename}.tck'
         weights_file = tracking_path + p + f'_{tractogram_filename}_sift2.txt'
         mu_file = tracking_path + p + f'_{tractogram_filename}_sift2_mu.txt'
-        weights,mu = load_sift2_weights(weights_file, mu_file)
+        weights, mu = load_sift2_weights(weights_file, mu_file)
         weights = weights*mu
     else:
         raise Exception("Invalid input type")
@@ -244,18 +395,21 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
                                             labels, inclusive=inclusive,
                                             return_mapping=True,
                                             mapping_as_streamlines=True,
-                                            weights = weights)
+                                            weights=weights)
 
     MV = np.delete(MV, 0, 0)
     MV = np.delete(MV, 0, 1)
-
 
     import matplotlib.pyplot as plt
     plt.imshow(np.log1p(MV), interpolation='nearest')
 
     if longitudinal:
-        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.npy", MV)
-        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.png")
+        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{
+                inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.npy", MV)
+        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{
+                    inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.png")
     else:
-        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.npy", MV)
-        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.png")
+        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{
+                inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.npy", MV)
+        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{
+                    inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.png")
