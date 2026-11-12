@@ -404,12 +404,12 @@ def connectivityMatrix(folder_path, p, label_fname, input="TCKGEN", inclusive=Fa
     plt.imshow(np.log1p(MV), interpolation='nearest')
 
     if longitudinal:
-        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{
-                inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.npy", MV)
-        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{
-                    inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.png")
+        np.save(tracking_path +
+                f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.npy", MV)
+        plt.savefig(tracking_path +
+                    f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_time-longitudinal_connectivityMatrix{suffix}.png")
     else:
-        np.save(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{
-                inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.npy", MV)
-        plt.savefig(tracking_path + f"{p}_type-{input}_atlas-{label_fname}_inclusive-{
-                    inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.png")
+        np.save(tracking_path +
+                f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.npy", MV)
+        plt.savefig(tracking_path +
+                    f"{p}_type-{input}_atlas-{label_fname}_inclusive-{inclusive}_dilate-{dilation_radius}_connectivityMatrix{suffix}.png")
