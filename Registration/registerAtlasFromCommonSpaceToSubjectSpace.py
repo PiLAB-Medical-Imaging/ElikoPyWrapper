@@ -115,8 +115,8 @@ def inverseTransformAtlas(folder_path, p, atlasPath, atlasName, DWI_type="B0FSL"
         out_DWI.to_filename(reg_path + p + "_Atlas_" + atlasName +
                             "_InSubjectDWISpaceFrom_" + DWI_type + ".nii.gz")
 
-    atlasProjectedT1Header = copy.deepcopy(atlas.header)
-    atlasProjectedT1Header["dim"][1:4] = atlas_data_T1space.shape[0:3]
+    # atlasProjectedT1Header = copy.deepcopy(atlas.header)
+    # atlasProjectedT1Header["dim"][1:4] = atlas_data_T1space.shape[0:3]
     T1_brain = folder_path + '/subjects/' + p + '/T1/' + p + "_T1_brain.nii.gz"
     T1_brain_img = nib.load(T1_brain)
     out_T1 = nib.Nifti1Image(atlas_data_T1space, T1_brain_img.affine)
